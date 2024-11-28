@@ -63,7 +63,7 @@ Material:
     - _DirectLightMultiplier: 3.5
     - _DitheringON: 1
     - _INTERPO: 1
-    - _LoopCount: 128
+    - _LoopCount: 64
     - _MaxStepSize: 10000
     - _TEST: 1
     - _WindSpeed: 1
