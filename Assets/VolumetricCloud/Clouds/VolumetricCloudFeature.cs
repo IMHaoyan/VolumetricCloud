@@ -70,19 +70,23 @@ public class VolumetricCloudFeature : ScriptableRendererFeature
                 passMat.SetFloat("_ZFar", camera.farClipPlane);
 
             #endregion
-
-                cmd.GetTemporaryRT(passTempTexID, width, height, 0,
-                    filter: FilterMode.Bilinear);
-
-                passSource = renderingData.cameraData.renderer.cameraColorTarget;
-                cmd.Blit(passSource, passTempTexID, passMat, 0);
-                cmd.Blit(passTempTexID, passSource, passMat, 1);
+                RenderCloud(cmd, renderingData);
             }
 
             context.ExecuteCommandBuffer(cmd); //执行命令
             CommandBufferPool.Release(cmd); //释放回收 
         }
 
+        void RenderCloud(CommandBuffer cmd, RenderingData renderingData)
+        {
+            cmd.GetTemporaryRT(passTempTexID, width, height, 0,
+                filter: FilterMode.Bilinear);
+
+            passSource = renderingData.cameraData.renderer.cameraColorTargetHandle;
+            cmd.Blit(passSource, passTempTexID, passMat, 0);
+            cmd.Blit(passTempTexID, passSource, passMat, 1);
+        }
+        
         public override void OnCameraCleanup(CommandBuffer cmd)
         {
             cmd.ReleaseTemporaryRT(passTempTexID);

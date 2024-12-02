@@ -62,11 +62,6 @@ Shader "URPCustom/Volume/myRayMarching"
     }
     SubShader
     {
-        Tags
-        {
-            "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline"
-        }
-        LOD 100
 
         Cull Off
         ZWrite Off
@@ -77,7 +72,6 @@ Shader "URPCustom/Volume/myRayMarching"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
         #include "Help.hlsl"
         #define DensityEPS 0.00001f
-        #define _DEBUGMODE 1
         #define EarthRadius 6300000.0
 
         float _ambientlerp;
@@ -100,10 +94,6 @@ Shader "URPCustom/Volume/myRayMarching"
 
         Pass
         {
-            Tags
-            {
-                "LightMode" = "UniversalForward" "RenderType" = "Overlay"
-            }
             HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
@@ -125,8 +115,6 @@ Shader "URPCustom/Volume/myRayMarching"
 
             float SampleCloudDensity(float3 currentPos)
             {
-                float heightFraction = Remap(currentPos.y, _CloudHeightRange.x, _CloudHeightRange.y, 0, 1);
-
                 //添加风的影响
                 _windDirection = normalize(_windDirection.xyz);
                 float3 wind = _windDirection * _windSpeed * _Time.y;
@@ -140,28 +128,26 @@ Shader "URPCustom/Volume/myRayMarching"
                                                           0);
                 weatherData.r *= _cloudCovery;
 
-                #if _DEBUGMODE
                 if (_debugShape == 1 && _debugShapeFlag == 0)
                 {
                     //WeatherMap
                     return weatherData.r * _densityMultiplier;
                 }
-                #endif
 
-                //计算云类型密度, w通道为feather的比例
+                // 根据云属计算垂直密度, w通道为feather的比例
+                float heightFraction = Remap(currentPos.y, _CloudHeightRange.x, _CloudHeightRange.y, 0, 1);
                 float stratusDensity = GetCloudTypeDensity(heightFraction, _stratusInfo.x, _stratusInfo.y,
                                                            _stratusInfo.w);
                 float cumulusDensity = GetCloudTypeDensity(heightFraction, _cumulusInfo.x, _cumulusInfo.y,
                                                            _cumulusInfo.w);
+                // 可以通过手动调整weatherData.b 以 debug不同云属的云
                 float cloudTypeDensity = lerp(stratusDensity, cumulusDensity, weatherData.b);
 
-                #if _DEBUGMODE
                 if (_debugShape == 1 && _debugShapeFlag == 1)
                 {
                     //CloudType
                     return weatherData.r * cloudTypeDensity * _densityMultiplier;
                 }
-                #endif
 
                 float3 shapeTexUV = currentPos * _ShapeTex_ST.x * 0.0001;
                 float4 shapeTexData = SAMPLE_TEXTURE3D_LOD(_ShapeTex, sampler_ShapeTex, shapeTexUV, 0);
@@ -204,8 +190,8 @@ Shader "URPCustom/Volume/myRayMarching"
                 float3 EarthCenter = float3(cameraPos.x, -EarthRadius, cameraPos.z);
                 //未考虑遮挡, 所以没有用到dstTravelled
                 float dstInsideSphere = RayCloudLayerDst(EarthCenter, EarthRadius, _CloudHeightRange.x,
-                                                         _CloudHeightRange.y,
-                                                         position, lightDir, false).y;
+             _CloudHeightRange.y,
+             position, lightDir, false).y;
 
                 float stepSize = dstInsideSphere / 8;
 
@@ -273,7 +259,7 @@ Shader "URPCustom/Volume/myRayMarching"
             }
 
             float4 cloudRayMarchingEarth(float3 startPoint, float3 direction, float dstToCloud, float inCloudMarchLimit,
-                                         float2 uv)
+      float2 uv)
             {
                 Light mainLight = GetMainLight();
                 float3 lightDir = normalize(mainLight.direction);
@@ -417,16 +403,16 @@ Shader "URPCustom/Volume/myRayMarching"
             half4 frag(v2f i) : SV_TARGET
             {
                 //half4 backgroundColor = SAMPLE_TEXTURE2D_LOD(_MainTex, sampler_MainTex, i.uv, 0);
-                
+
                 //------------重建世界坐标-------------------------------------------------
                 float RawDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, i.uv);
                 float3 positionWS = float3(0, 0, 0);
-            #if _INTERPO_ON //射线法重建世界坐标
+                #if _INTERPO_ON //射线法重建世界坐标
                 float linearDepth = LinearEyeDepth(RawDepth, _ZBufferParams);
                 positionWS = GetCameraPositionWS() + linearDepth * normalize(i.interpolatedRay.xyz);//normalize is nesssary
-            #else
+                #else
                 positionWS = ComputeWorldSpacePosition(i.uv, RawDepth, UNITY_MATRIX_I_VP);
-            #endif
+                #endif
                 //return float4(positionWS.rgb, 1);
 
                 //------------每个像素进行raymarching-------------------------------------------------
@@ -437,7 +423,7 @@ Shader "URPCustom/Volume/myRayMarching"
                 //准备数据
                 float3 EarthCenter = float3(camPos.x, -EarthRadius, camPos.z);
                 float2 rayHitCloudInfo = RayCloudLayerDst(EarthCenter, EarthRadius, _CloudHeightRange.x,
-                                                      _CloudHeightRange.y, camPos, viewDir);
+                   _CloudHeightRange.y, camPos, viewDir);
                 float inCloudMarchLimit = min(camToOpaque - rayHitCloudInfo.x, rayHitCloudInfo.y);
 
                 //开始raymarching

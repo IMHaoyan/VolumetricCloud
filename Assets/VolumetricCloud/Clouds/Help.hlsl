@@ -12,14 +12,14 @@ CBUFFER_START(UnityPerMaterial)
     float _sigma_t;
     float _albedo;
     float _densityMultiplier;
-    
+
     float4 _WeatherTex_ST;
     float4 _ShapeTex_ST;
 
     float4 _BlueNoiseTex_ST;
     //float2 _BlueNoiseTexUV;
     float _BlueNoiseStrength;
-    
+
     float4 _CloudHeightRange;
     float4 _stratusInfo;
     float4 _cumulusInfo;
@@ -32,7 +32,7 @@ CBUFFER_START(UnityPerMaterial)
     float _debugShape;
     float _debugShapeFlag;
 
-    float _showTruncation ;
+    float _showTruncation;
 
     float _octaves;
     float _DirectLightMultiplier;
@@ -70,22 +70,27 @@ SAMPLER(sampler_DetailShapeTex);
 TEXTURE3D(_ShapeNoise);
 SAMPLER(sampler_ShapeNoise);
 
-float HG(float a, float g) {
+float HG(float a, float g)
+{
     float g2 = g * g;
     return (1 - g2) / (4 * 3.14159 * pow(abs(1 + g2 - 2 * g * a), 1.5));
 }
 
-float Schlick(float a, float g) {
+float Schlick(float a, float g)
+{
     //g: eccentricity ，HG函数的偏心率
     float g2 = g * g;
     return (1 - g2) / (4 * 3.14159 * pow(1 + g * a, 2));
 }
-float Cornette(float a, float g) {
+
+float Cornette(float a, float g)
+{
     float g2 = g * g;
     return 3 * (1 - g2) * (1 + a * a) / (8 * 3.14159 * (2 + g2) * pow(1 + g2 - 2 * g * a, 1.5));
 }
 
-float phase(float a, float g) {
+float phase(float a, float g)
+{
     //float p = (1 - _blendG) * HG(a, _g.x) + _blendG * HG(a, _g.y);
     // for (int index = 1; index < _octaves; index++) {
     //     p = 0.2 + p * 0.7;
@@ -99,7 +104,8 @@ float phase(float a, float g) {
     //return HG(a, _g2);
 
     float phase = 1;
-    if (_usePhase != 0) {
+    if (_usePhase != 0)
+    {
         if (_chosePhase == 0)
             phase = HG(a, g);
         else if (_chosePhase == 1)
@@ -110,15 +116,15 @@ float phase(float a, float g) {
     return phase;
     //return max((1 - _blendG) * HG(a, _g.x), HG(a, _g.y));
     //return (1 - _blendG) * HG(a, _g.x) + _blendG * HG(a, _g.y);
-
 }
 
-float2 RaySphereDst(float3 sphereCenter, float sphereRadius, float3 pos, float3 rayDir) {
+float2 RaySphereDst(float3 sphereCenter, float sphereRadius, float3 pos, float3 rayDir)
+{
     float3 oc = pos - sphereCenter;
     float b = dot(rayDir, oc);
     float c = dot(oc, oc) - sphereRadius * sphereRadius;
-    float t = b * b - c;//t > 0有两个交点, = 0 相切， < 0 不相交
-    
+    float t = b * b - c; //t > 0有两个交点, = 0 相切， < 0 不相交
+
     float delta = sqrt(max(t, 0));
     float dstToSphere = max(-b - delta, 0);
     float dstInSphere = max(-b + delta - dstToSphere, 0);
@@ -126,25 +132,31 @@ float2 RaySphereDst(float3 sphereCenter, float sphereRadius, float3 pos, float3 
 }
 
 //射线与云层相交, x到云层的最近距离, y穿过云层的距离
-float2 RayCloudLayerDst(float3 sphereCenter, float earthRadius, float heightMin, float heightMax, float3 pos, float3 rayDir, bool isShape = true) {
+float2 RayCloudLayerDst(float3 sphereCenter, float earthRadius, float heightMin, float heightMax, float3 pos,
+                        float3 rayDir, bool isShape = true)
+{
     float2 cloudDstMin = RaySphereDst(sphereCenter, heightMin + earthRadius, pos, rayDir);
     float2 cloudDstMax = RaySphereDst(sphereCenter, heightMax + earthRadius, pos, rayDir);
     float dstToCloudLayer = 0;
     float dstInCloudLayer = 0;
     //形状步进时计算相交
-    if (isShape) {
+    if (isShape)
+    {
         //在地表上
-        if (pos.y <= heightMin) {
+        if (pos.y <= heightMin)
+        {
             float3 startPos = pos + rayDir * cloudDstMin.y;
             //开始位置在地平线以上时，设置距离
-            if (startPos.y >= 0) {
+            if (startPos.y >= 0)
+            {
                 dstToCloudLayer = cloudDstMin.y;
                 dstInCloudLayer = cloudDstMax.y - cloudDstMin.y;
             }
             return float2(dstToCloudLayer, dstInCloudLayer);
         }
         //在云层内
-        if (pos.y > heightMin && pos.y <= heightMax) {
+        if (pos.y > heightMin && pos.y <= heightMax)
+        {
             dstToCloudLayer = 0;
             dstInCloudLayer = cloudDstMin.y > 0 ? cloudDstMin.x : cloudDstMax.y;
             return float2(dstToCloudLayer, dstInCloudLayer);
@@ -152,7 +164,9 @@ float2 RayCloudLayerDst(float3 sphereCenter, float earthRadius, float heightMin,
         //在云层外
         dstToCloudLayer = cloudDstMax.x;
         dstInCloudLayer = cloudDstMin.y > 0 ? cloudDstMin.x - dstToCloudLayer : cloudDstMax.y;
-    } else {
+    }
+    else
+    {
         //光照步进时，步进开始点一定在云层内
         dstToCloudLayer = 0;
         dstInCloudLayer = cloudDstMin.y > 0 ? cloudDstMin.x : cloudDstMax.y;
@@ -160,20 +174,25 @@ float2 RayCloudLayerDst(float3 sphereCenter, float earthRadius, float heightMin,
     return float2(dstToCloudLayer, dstInCloudLayer);
 }
 
-float Remap(float original_value, float original_min, float original_max, float new_min, float new_max) {
+float Remap(float original_value, float original_min, float original_max, float new_min, float new_max)
+{
     return new_min + (original_value - original_min) / (original_max - original_min) * (new_max - new_min);
 }
 
-float GetCloudTypeDensity(float heightFraction, float cloud_min, float cloud_max, float feather) {
-    return saturate(Remap(heightFraction, cloud_min, cloud_min + feather * 0.5, 0, 1)) * saturate(Remap(heightFraction, cloud_max - feather, cloud_max, 1, 0));
+float GetCloudTypeDensity(float heightFraction, float cloud_min, float cloud_max, float feather)
+{
+    return saturate(Remap(heightFraction, cloud_min, cloud_min + feather * 0.5, 0, 1))
+        * saturate(Remap(heightFraction, cloud_max - feather, cloud_max, 1, 0));
 }
 
 
-float Beer(float tau, float sigma_t) {
+float Beer(float tau, float sigma_t)
+{
     return exp(-tau * sigma_t);
 }
 
-float BeerPowder(float tau, float sigma_t) {
+float BeerPowder(float tau, float sigma_t)
+{
     return 2.0 * exp(-tau * sigma_t) * (1.0 - exp(-2.0 * tau * sigma_t));
 }
 
