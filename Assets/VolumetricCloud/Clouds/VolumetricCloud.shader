@@ -149,36 +149,61 @@ Shader "URPCustom/Volume/myRayMarching"
                     return weatherData.r * cloudTypeDensity * _densityMultiplier;
                 }
 
+                //Nubis's Method
+                // 基础形状： Perlin-Worley(r通道) 三个频率逐渐增加的低频Worley噪声(gba通道) 
                 float3 shapeTexUV = currentPos * _ShapeTex_ST.x * 0.0001;
                 float4 shapeTexData = SAMPLE_TEXTURE3D_LOD(_ShapeTex, sampler_ShapeTex, shapeTexUV, 0);
 
                 #if 1
-                //Nubis's Method (WeatherMap)
-                float fbm = dot(shapeTexData.gba, float3(0.625, 0.25, 0.125)); //添加细节纹理
-                float baseShape = Remap(shapeTexData.r, -(1 - fbm) * _baseShapeDetailEffect, 1.0, 0, 1.0);
+                float fbm = dot(shapeTexData.gba, float3(0.625, 0.25, 0.125));  //  (0.625, 0.25, 0.125)?
+                float baseShape = Remap(shapeTexData.r, saturate(-(1 - fbm)) * _baseShapeDetailEffect, 1.0, 0, 1.0);
                 float dimensionalProfile = weatherData.r * cloudTypeDensity;
                 return saturate(baseShape - (1 - dimensionalProfile)) * _densityMultiplier;
                 #else
-            float fbm = dot(shapeTexData.gba, float3(0.5, 0.25, 0.125));//添加细节纹理
-            float baseShape = Remap(shapeTexData.r, saturate((1 - fbm) * _baseShapeDetailEffect), 1.0, 0, 1.0);
-            
-            float cloudDensity = baseShape * weatherData.r * cloudTypeDensity ;
+                // Nubis 2015
+                float dimensionalProfile = weatherData.r * cloudTypeDensity;
+                // horizontal weather * vertical cloud type density
+                float fbm = dot(shapeTexData.gba, float3(0.5, 0.25, 0.125)); //  (0.625, 0.25, 0.125)?
+                float baseShape = Remap(shapeTexData.r, saturate((1 - fbm) * _baseShapeDetailEffect), 1.0, 0, 1.0);
+                float cloudDensity = baseShape * dimensionalProfile;
 
-            if (_debugShape == 1 && _debugShapeFlag == 2) {
-                return cloudDensity * _densityMultiplier * 0.1;
-            }
+                if (_debugShape == 1 && _debugShapeFlag == 2)
+                {
+                    return cloudDensity * _densityMultiplier;
+                }
 
-            //细节噪声受风影响，添加向上的偏移
-            currentPos += (_windDirection + float3(0, 0.1, 0)) * _windSpeed * _Time.y * 0.1;
-            float3 detailTex = SAMPLE_TEXTURE3D_LOD(_DetailShapeTex, sampler_DetailShapeTex, currentPos * _DetailShapeTex_ST.x * 0.0001, 0).rgb;
-            float detailTexFBM = dot(detailTex, float3(0.5, 0.25, 0.125));
-            //根据高度从纤细到波纹的形状进行变化
-            float detailNoise = detailTexFBM;//lerp(detailTexFBM, 1.0 - detailTexFBM,saturate(heightFraction * 1.0));
-            //通过使用remap映射细节噪声，可以保留基本形状，在边缘进行变化
-            cloudDensity = Remap(cloudDensity, detailNoise * _detailEffect, 1.0, 0.0, 1.0);
-            cloudDensity = cloudDensity < 0 ? 0 : cloudDensity;
-            return cloudDensity * _densityMultiplier * 0.1;
+                float3 detailTex = SAMPLE_TEXTURE3D_LOD(_DetailShapeTex, sampler_DetailShapeTex,
+                                                        currentPos * _DetailShapeTex_ST.x * 0.0001,
+                                                        0).rgb;
+                float detailTexFBM = dot(detailTex, float3(0.5, 0.25, 0.125));
+                // //根据高度从纤细到波纹的形状进行变化
+                float detailNoise = detailTexFBM;
+                // //lerp(detailTexFBM, 1.0 - detailTexFBM,saturate(heightFraction * 1.0));
+                // //通过使用remap映射细节噪声，可以保留基本形状，在边缘进行变化
+                //cloudDensity -= detailNoise * _detailEffect;
+                cloudDensity = Remap(cloudDensity, detailNoise * _detailEffect, 1.0, 0.0, 1.0);
+                return cloudDensity * _densityMultiplier;
                 #endif
+                /*float fbm = dot(shapeTexData.gba, float3(0.5, 0.25, 0.125));//添加细节纹理
+                float baseShape = Remap(shapeTexData.r, saturate((1 - fbm) * _baseShapeDetailEffect), 1.0, 0, 1.0);
+                
+                float cloudDensity = baseShape * weatherData.r * cloudTypeDensity ;
+    
+                if (_debugShape == 1 && _debugShapeFlag == 2) {
+                    return cloudDensity * _densityMultiplier * 0.1;
+                }
+    
+                //细节噪声受风影响，添加向上的偏移
+                currentPos += (_windDirection + float3(0, 0.1, 0)) * _windSpeed * _Time.y * 0.1;
+                float3 detailTex = SAMPLE_TEXTURE3D_LOD(_DetailShapeTex, sampler_DetailShapeTex, currentPos * _DetailShapeTex_ST.x * 0.0001, 0).rgb;
+                float detailTexFBM = dot(detailTex, float3(0.5, 0.25, 0.125));
+                //根据高度从纤细到波纹的形状进行变化
+                float detailNoise = detailTexFBM;//lerp(detailTexFBM, 1.0 - detailTexFBM,saturate(heightFraction * 1.0));
+                //通过使用remap映射细节噪声，可以保留基本形状，在边缘进行变化
+                cloudDensity = Remap(cloudDensity, detailNoise * _detailEffect, 1.0, 0.0, 1.0);
+                cloudDensity = cloudDensity < 0 ? 0 : cloudDensity;
+                return cloudDensity * _densityMultiplier * 0.1;
+                    #endif*/
             }
 
             float3 lightmarchEarth(float3 position, float dstTravelled)
@@ -190,8 +215,8 @@ Shader "URPCustom/Volume/myRayMarching"
                 float3 EarthCenter = float3(cameraPos.x, -EarthRadius, cameraPos.z);
                 //未考虑遮挡, 所以没有用到dstTravelled
                 float dstInsideSphere = RayCloudLayerDst(EarthCenter, EarthRadius, _CloudHeightRange.x,
-             _CloudHeightRange.y,
-             position, lightDir, false).y;
+                                                         _CloudHeightRange.y,
+                                                         position, lightDir, false).y;
 
                 float stepSize = dstInsideSphere / 8;
 
@@ -259,7 +284,7 @@ Shader "URPCustom/Volume/myRayMarching"
             }
 
             float4 cloudRayMarchingEarth(float3 startPoint, float3 direction, float dstToCloud, float inCloudMarchLimit,
-      float2 uv)
+                                         float2 uv)
             {
                 Light mainLight = GetMainLight();
                 float3 lightDir = normalize(mainLight.direction);
@@ -423,7 +448,7 @@ Shader "URPCustom/Volume/myRayMarching"
                 //准备数据
                 float3 EarthCenter = float3(camPos.x, -EarthRadius, camPos.z);
                 float2 rayHitCloudInfo = RayCloudLayerDst(EarthCenter, EarthRadius, _CloudHeightRange.x,
-                   _CloudHeightRange.y, camPos, viewDir);
+                                                          _CloudHeightRange.y, camPos, viewDir);
                 float inCloudMarchLimit = min(camToOpaque - rayHitCloudInfo.x, rayHitCloudInfo.y);
 
                 //开始raymarching

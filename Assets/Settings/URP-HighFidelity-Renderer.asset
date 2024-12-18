@@ -143,14 +143,14 @@ MonoBehaviour:
   m_Name: VolumetricCloudFeature
   m_EditorClassIdentifier: 
   m_Active: 1
-  setting:
-    cloudMaterial: {fileID: 2100000, guid: 018aad1c2bba0f344991d60275b01fe5, type: 2}
-    passEvent: 500
-    rtScale: 0.5
-    frameBlocking: 16
-    shieldWidth: 400
-    isFrameDebug: 0
-    frameDebug: 1
+  Set:
+    CloudMaterial: {fileID: 2100000, guid: 018aad1c2bba0f344991d60275b01fe5, type: 2}
+    PassEvent: 500
+    RTScale: 0.5
+    FrameBlocking: 1
+    ShieldWidth: 400
+    IsFrameDebug: 0
+    FrameDebug: 1
 --- !u!114 &5969759460971407093
 MonoBehaviour:
   m_ObjectHideFlags: 0
