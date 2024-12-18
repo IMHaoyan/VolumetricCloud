@@ -155,7 +155,7 @@ Shader "URPCustom/Volume/myRayMarching"
                 float4 shapeTexData = SAMPLE_TEXTURE3D_LOD(_ShapeTex, sampler_ShapeTex, shapeTexUV, 0);
 
                 #if 1
-                float fbm = dot(shapeTexData.gba, float3(0.625, 0.25, 0.125));  //  (0.625, 0.25, 0.125)?
+                float fbm = dot(shapeTexData.gba, float3(0.625, 0.25, 0.125)); //  (0.625, 0.25, 0.125)?
                 float baseShape = Remap(shapeTexData.r, saturate(-(1 - fbm)) * _baseShapeDetailEffect, 1.0, 0, 1.0);
                 float dimensionalProfile = weatherData.r * cloudTypeDensity;
                 return saturate(baseShape - (1 - dimensionalProfile)) * _densityMultiplier;
@@ -301,8 +301,8 @@ Shader "URPCustom/Volume/myRayMarching"
                         return float4(float3(1, 0, 0), Beer(tau, _sigma_t));
                 }
 
-                float blueNoise = SAMPLE_TEXTURE2D_LOD(_BlueNoiseTex, sampler_BlueNoiseTex, uv * _BlueNoiseTex_ST.xy, 0)
-                    .r;
+                float blueNoise = SAMPLE_TEXTURE2D_LOD(_BlueNoiseTex, sampler_BlueNoiseTex,
+                                                       uv * _BlueNoiseTex_ST.xy + _Time.y*60, 0).r;
                 if (_DitheringON == 1)
                     startPoint += (direction * stepsize) * blueNoise * _BlueNoiseStrength;
                 float3 currentPos = startPoint + direction * dstToCloud;
@@ -448,7 +448,7 @@ Shader "URPCustom/Volume/myRayMarching"
                 //准备数据
                 float3 EarthCenter = float3(camPos.x, -EarthRadius, camPos.z);
                 float2 rayHitCloudInfo = RayCloudLayerDst(EarthCenter, EarthRadius, _CloudHeightRange.x,
-                                                          _CloudHeightRange.y, camPos, viewDir);
+                                                            _CloudHeightRange.y, camPos, viewDir);
                 float inCloudMarchLimit = min(camToOpaque - rayHitCloudInfo.x, rayHitCloudInfo.y);
 
                 //开始raymarching

@@ -151,7 +151,7 @@ public class VolumetricCloudFeature : ScriptableRendererFeature
                     cmd.Blit(temTextureID, cameraColorTex, Set.CloudMaterial, 1);
 
                     //执行
-                    context.ExecuteCommandBuffer(cmd);
+                    //context.ExecuteCommandBuffer(cmd);
                     //释放资源
                     cmd.ReleaseTemporaryRT(temTextureID);
                 }
@@ -160,10 +160,11 @@ public class VolumetricCloudFeature : ScriptableRendererFeature
                     cmd.Blit(cloudTex[rtSwitch % 2], cloudTex[(rtSwitch + 1) % 2], Set.CloudMaterial, 0);
                     cmd.Blit(cloudTex[(rtSwitch + 1) % 2], cameraColorTex, Set.CloudMaterial, 1);
                     //执行
-                    context.ExecuteCommandBuffer(cmd);
+                    //context.ExecuteCommandBuffer(cmd);
                 }
             }
 
+            context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd); //释放回收 
         }
 

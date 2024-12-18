@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f62c9c65cf3354c93be831c8bc075510, type: 3}
   m_Name: SSAO
   m_EditorClassIdentifier: 
-  m_Active: 1
+  m_Active: 0
   m_Settings:
     AOMethod: 1
     Downsample: 0
@@ -47,7 +47,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c601c63f7f301754381201e3204e79c3, type: 3}
   m_Name: AtmosphereRenderFeature
   m_EditorClassIdentifier: 
-  m_Active: 1
+  m_Active: 0
   settings:
     CS: {fileID: 7200000, guid: fe0f8a511266cb74e85fde2d0dfbbdd4, type: 3}
     GroundRadius: 6360000
@@ -163,7 +163,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9ee34884cc6f0fb49ba03122f7c8a3cb, type: 3}
   m_Name: AerialPerspectiveRF
   m_EditorClassIdentifier: 
-  m_Active: 1
+  m_Active: 0
   mySetting:
     passEvent: 550
     AerialPerspecMat: {fileID: 2100000, guid: 0a307b5b87598324e95baf0e59a682f8, type: 2}
