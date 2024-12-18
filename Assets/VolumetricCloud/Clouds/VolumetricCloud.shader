@@ -483,8 +483,7 @@ Shader "URPCustom/Volume/myRayMarching"
             v2f vert_blend(appdata v)
             {
                 v2f o;
-                VertexPositionInputs vertexPos = GetVertexPositionInputs(v.vertex.xyz);
-                o.vertex = vertexPos.positionCS;
+                o.vertex = TransformObjectToHClip(v.vertex.xyz);
                 o.uv = v.texcoord;
                 return o;
             }
