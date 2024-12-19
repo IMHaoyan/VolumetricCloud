@@ -132,7 +132,7 @@ Shader "URPCustom/Volume/myRayMarching"
                 _windDirection = normalize(_windDirection.xyz);
                 float3 wind = _windDirection * _windSpeed * _Time.y;
                 float3 dsiPos = currentPos;
-                currentPos = currentPos + wind * 1000;
+                //currentPos = currentPos + wind * 1000;
 
                 //采样天气纹理，默认1000km平铺， r 密度, g 吸收率, b 云类型(0~1 => 层云~积云)
                 float2 weatherTexUV = dsiPos.xz * _WeatherTex_ST.x; //* _weatherTexTiling;  10.8
@@ -296,7 +296,7 @@ Shader "URPCustom/Volume/myRayMarching"
                 return luminance;
             }
 
-            float4 cloudRayMarchingEarth(float3 startPoint, float3 direction, float dstToCloud, float inCloudMarchLimit,
+            float4 cloudRayMarchingEarth(float3 camPos, float3 direction, float dstToCloud, float inCloudMarchLimit,
                                          float2 uv)
             {
                 //不在包围盒内或被物体遮挡 直接显示背景
@@ -322,10 +322,10 @@ Shader "URPCustom/Volume/myRayMarching"
 
                 float blueNoise = SAMPLE_TEXTURE2D_LOD(_BlueNoiseTex, sampler_BlueNoiseTex,
                                                        uv * _BlueNoiseTexUV.xy + _Time.y*60, 0).r; 
-                
+                float3 startPos = camPos + direction * dstToCloud;
                 if (_DitheringON == 1)
-                    startPoint += (direction * stepsize) * blueNoise * _BlueNoiseStrength;
-                float3 currentPos = startPoint + direction * dstToCloud;
+                    startPos += (direction * stepsize) * blueNoise * _BlueNoiseStrength;
+                float3 currentPos = startPos;
 
                 float inCloudMarchedLength = 0;
                 float3 cloudColor = float3(0, 0, 0);

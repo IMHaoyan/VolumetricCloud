@@ -13,11 +13,11 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _2X2
+  - _INTERPO_ON
   m_InvalidKeywords:
   - _ADAPTIVEMARCH_ON
   - _DEBUGSHAPE_ON
   - _DITHERINGON_ON
-  - _INTERPO_OFF
   - _TEST_OFF
   - _USEPHASE_ON
   m_LightmapFlags: 4
@@ -60,10 +60,10 @@ Material:
     - _AmbinetScale: 0.00517
     - _AmbinetScale0: 0.637
     - _AmbinetScale1: 0.776
-    - _BlueNoiseStrength: 6.5
+    - _BlueNoiseStrength: 3
     - _DirectLightMultiplier: 3.5
     - _DitheringON: 1
-    - _INTERPO: 1
+    - _INTERPO: 0
     - _LoopCount: 128
     - _MaxStepSize: 10000
     - _TEST: 1
