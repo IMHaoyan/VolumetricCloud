@@ -60,12 +60,12 @@ Material:
     - _AmbinetScale: 0.00517
     - _AmbinetScale0: 0.637
     - _AmbinetScale1: 0.776
-    - _BlueNoiseStrength: 3
+    - _BlueNoiseStrength: 8
     - _DirectLightMultiplier: 3.5
     - _DitheringON: 1
     - _INTERPO: 0
     - _LoopCount: 128
-    - _MaxStepSize: 10000
+    - _MaxStepSize: 1024
     - _TEST: 1
     - _WindSpeed: 1
     - _ZFar: 50000

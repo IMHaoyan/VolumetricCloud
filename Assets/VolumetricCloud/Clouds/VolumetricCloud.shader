@@ -317,11 +317,11 @@ Shader "URPCustom/Volume/myRayMarching"
                 {
                     //stepsize如果过大，会过于有层次感，标记出步进长度使用最大限制值的情况，此时使用maxstepsize
                     if (_showTruncation == 0)
-                        return float4(float3(1, 0, 0), Beer(tau, _sigma_t));
+                        return float4(float3(0, 0, 1), Beer(tau, _sigma_t));
                 }
 
                 float blueNoise = SAMPLE_TEXTURE2D_LOD(_BlueNoiseTex, sampler_BlueNoiseTex,
-                                                       uv * _BlueNoiseTexUV.xy + _Time.y*60, 0).r; 
+                                                       uv * _BlueNoiseTexUV.xy + _Time.y*60, 0).r;
                 float3 startPos = camPos + direction * dstToCloud;
                 if (_DitheringON == 1)
                     startPos += (direction * stepsize) * blueNoise * _BlueNoiseStrength;
@@ -336,10 +336,10 @@ Shader "URPCustom/Volume/myRayMarching"
                 float densityTest = 0; //云测试密度
                 float densityPrevious = 0; //上一次采样密度
                 int densitySampleCount_zero = 0; //0密度采样次数
-
+                float longstep = 2 * stepsize;
                 for (int i = 0; i < maxLoopCount; i++)
                 {
-                    if (_AdaptiveMarch && densityTest < DensityEPS)
+                    if (_AdaptiveMarch && densityTest <= DensityEPS)
                     {
                         //如果步进到被物体遮挡,或穿出云覆盖范围时,跳出循环
                         if (inCloudMarchedLength >= inCloudMarchLimit)
@@ -347,8 +347,8 @@ Shader "URPCustom/Volume/myRayMarching"
                             break;
                         }
                         //向观察方向步进4倍的长度
-                        inCloudMarchedLength += 4 * stepsize;
-                        currentPos += direction * 4 * stepsize;
+                        inCloudMarchedLength += longstep;
+                        currentPos += direction * longstep;
 
                         //进行密度采样，测试是否继续大步前进
                         float currentDensity = SampleCloudDensity(currentPos);
@@ -357,9 +357,12 @@ Shader "URPCustom/Volume/myRayMarching"
                         //如果检测到云，往后退一步(因为我们可能错过了开始位置)
                         if (densityTest > DensityEPS)
                         {
-                            inCloudMarchedLength -= 4 * stepsize;
-                            currentPos -= direction * 4 * stepsize;
+                            inCloudMarchedLength -= longstep;
+                            currentPos -= direction * longstep;
+                            i--;
                         }
+                        //if (longstep * 2 <= 4 * stepsize)
+                        //    longstep *= 2;
                     }
                     else
                     {
@@ -367,6 +370,8 @@ Shader "URPCustom/Volume/myRayMarching"
                         {
                             break;
                         }
+                        //longstep = 2 * stepsize;
+                        
                         inCloudMarchedLength += stepsize;
                         currentPos += direction * stepsize;
 
@@ -491,7 +496,7 @@ Shader "URPCustom/Volume/myRayMarching"
                 //准备数据
                 float3 EarthCenter = float3(camPos.x, -EarthRadius, camPos.z);
                 float2 rayHitCloudInfo = RayCloudLayerDst(EarthCenter, EarthRadius, _CloudHeightRange.x,
-                                                          _CloudHeightRange.y, camPos, viewDir);
+                                                                 _CloudHeightRange.y, camPos, viewDir);
                 float inCloudMarchLimit = min(camToOpaque - rayHitCloudInfo.x, rayHitCloudInfo.y);
 
                 //开始raymarching
