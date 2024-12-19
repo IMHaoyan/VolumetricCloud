@@ -3,7 +3,6 @@ Shader "URPCustom/Volume/myRayMarching"
     Properties
     {
         [HideInInspector]_MainTex ("MainTex", 2D) = "white" { }
-        [HideInInspector]_ZFar ("ZFar", Float) = 1.0
 
         _CloudHeightRange ("_CloudHeightRange", Vector) = (1500, 4000, 0, 8000)
         _stratusInfo ("_stratusInfo", Vector) = (0, 0, 0, 0)
@@ -43,7 +42,6 @@ Shader "URPCustom/Volume/myRayMarching"
 
         [IntRange]_octaves ("_octaves", Range(1, 16)) = 1
 
-        _BlueNoiseTex ("_BlueNoiseTex", 2D) = "white" { }
         _BlueNoiseStrength ("BlueNoiseStrength", Range(0, 20)) = 1
         [Toggle]_DitheringON ("_DitheringON", Float) = 0
         _display0 ("------------------Phase----------------------", Int) = 1
@@ -80,15 +78,29 @@ Shader "URPCustom/Volume/myRayMarching"
         float _AmbinetScale1;
         float _AmbinetScale0;
 
-        //-----------------------------------------------------------------------------------
-        // float _radius;
-        // float3 _position;
-        // float _sig_a;
-        // float _sig_s;
-        // float _powdensity;
-        // float _densityMul;
-        // float _showDensity;
-        // float _stepCount;
+
+        float4x4 _CurrentViewProjectionInverseMatrix;
+        float4x4 _FrustumCornersRay;
+        float4 _MainTex_TexelSize;
+
+        //蓝噪声uv
+        float2 _BlueNoiseTexUV;
+        //当前绘制帧数
+        int _FrameCount;
+        //纹理宽度
+        int _Width;
+        //纹理高度
+        int _Height;
+
+        //------------------------------------------------------------------------------------
+
+        TEXTURE2D(_MainTex);
+        SAMPLER(sampler_MainTex);
+        TEXTURE2D(_CameraDepthTexture);
+        SAMPLER(sampler_CameraDepthTexture);
+        TEXTURE2D(_BlueNoiseTex);
+        SAMPLER(sampler_BlueNoiseTex);
+
         //------------------------------------------------------------------------------------
         ENDHLSL
 
@@ -98,6 +110,7 @@ Shader "URPCustom/Volume/myRayMarching"
             #pragma vertex vert
             #pragma fragment frag
             #pragma multi_compile _ _INTERPO_ON
+            #pragma multi_compile _OFF _2X2 _4X4
             //#pragma multi_compile _ _TEST_ON
 
             struct a2v
@@ -286,6 +299,12 @@ Shader "URPCustom/Volume/myRayMarching"
             float4 cloudRayMarchingEarth(float3 startPoint, float3 direction, float dstToCloud, float inCloudMarchLimit,
                                          float2 uv)
             {
+                //不在包围盒内或被物体遮挡 直接显示背景
+                if (inCloudMarchLimit <= 0)
+                {
+                    return half4(0, 0, 0, 1); //scattering(0,0,0) + backColor.rgb * transmittance(1.0),
+                }
+
                 Light mainLight = GetMainLight();
                 float3 lightDir = normalize(mainLight.direction);
                 float cosAngle = dot(direction, lightDir);
@@ -302,7 +321,8 @@ Shader "URPCustom/Volume/myRayMarching"
                 }
 
                 float blueNoise = SAMPLE_TEXTURE2D_LOD(_BlueNoiseTex, sampler_BlueNoiseTex,
-                                                       uv * _BlueNoiseTex_ST.xy + _Time.y*60, 0).r;
+                                                       uv * _BlueNoiseTexUV.xy + _Time.y*60, 0).r; 
+                
                 if (_DitheringON == 1)
                     startPoint += (direction * stepsize) * blueNoise * _BlueNoiseStrength;
                 float3 currentPos = startPoint + direction * dstToCloud;
@@ -382,7 +402,6 @@ Shader "URPCustom/Volume/myRayMarching"
 
                         cloudColor += Scattering(tau, cosAngle, lightReceive, stepsize, currentDensity)
                             * stepsize;
-                        //cloudColor += lightReceive * transmittance * (_sigma_s * currentDensity) * phase(cosAngle) ;
                         densityPrevious = currentDensity;
                     }
                 }
@@ -427,14 +446,38 @@ Shader "URPCustom/Volume/myRayMarching"
 
             half4 frag(v2f i) : SV_TARGET
             {
-                //half4 backgroundColor = SAMPLE_TEXTURE2D_LOD(_MainTex, sampler_MainTex, i.uv, 0);
+                half4 backgroundColor = SAMPLE_TEXTURE2D_LOD(_MainTex, sampler_MainTex, i.uv, 0);
+
+                #ifndef _OFF
+                    //进行分帧渲染判断
+                    int iterationCount = 4;
+                #ifdef _2X2
+                        iterationCount = 2;
+                #endif
+                    int frameOrder = GetIndex(i.uv, _Width, _Height, iterationCount);
+                    
+                    //分帧绘制顺序Debug
+                    // #ifdef _2X2
+                    //     return half4((frameOrder / 3.0).xxx, 0); // frameOrder 范围为 0 ~ 3
+                    // #else
+                    //     return half4((frameOrder / 15.0).xxx, 0); // frameOrder 范围为 0 ~ 15
+                    // #endif
+
+                    //判断当帧是否渲染该片元
+                    if (frameOrder != _FrameCount)
+                    {
+                        return backgroundColor;
+                    }
+                #endif
+
 
                 //------------重建世界坐标-------------------------------------------------
-                float RawDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, i.uv);
+                float RawDepth = SAMPLE_TEXTURE2D(_CameraDepthTexture, sampler_CameraDepthTexture, i.uv).r;
                 float3 positionWS = float3(0, 0, 0);
                 #if _INTERPO_ON //射线法重建世界坐标
                 float linearDepth = LinearEyeDepth(RawDepth, _ZBufferParams);
-                positionWS = GetCameraPositionWS() + linearDepth * normalize(i.interpolatedRay.xyz);//normalize is nesssary
+                positionWS = GetCameraPositionWS() + linearDepth * normalize(i.interpolatedRay.xyz);
+                //normalize is nesssary
                 #else
                 positionWS = ComputeWorldSpacePosition(i.uv, RawDepth, UNITY_MATRIX_I_VP);
                 #endif
@@ -448,7 +491,7 @@ Shader "URPCustom/Volume/myRayMarching"
                 //准备数据
                 float3 EarthCenter = float3(camPos.x, -EarthRadius, camPos.z);
                 float2 rayHitCloudInfo = RayCloudLayerDst(EarthCenter, EarthRadius, _CloudHeightRange.x,
-                                                            _CloudHeightRange.y, camPos, viewDir);
+                                                          _CloudHeightRange.y, camPos, viewDir);
                 float inCloudMarchLimit = min(camToOpaque - rayHitCloudInfo.x, rayHitCloudInfo.y);
 
                 //开始raymarching
@@ -483,8 +526,7 @@ Shader "URPCustom/Volume/myRayMarching"
             v2f vert_blend(appdata v)
             {
                 v2f o;
-                VertexPositionInputs vertexPos = GetVertexPositionInputs(v.vertex.xyz);
-                o.vertex = vertexPos.positionCS;
+                o.vertex = TransformObjectToHClip(v.vertex.xyz);
                 o.uv = v.texcoord;
                 return o;
             }

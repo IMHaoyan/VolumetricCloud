@@ -21,6 +21,8 @@ public class VolumetricCloudFeature : ScriptableRendererFeature
         //体积云渲染的插入阶段
         public RenderPassEvent PassEvent = RenderPassEvent.AfterRenderingTransparents; //半透明物体应该遮挡云
 
+        public Texture2D BlueNoiseTex;
+        
         //体积云渲染目标比例
         [Range(0.1f, 1)] public float RTScale = 0.5f;
 
@@ -71,6 +73,11 @@ public class VolumetricCloudFeature : ScriptableRendererFeature
             this.frameCount = 0;
         }
 
+        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
+        {
+            cameraColorTex = renderingData.cameraData.renderer.cameraColorTargetHandle;
+        }
+
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get(cmdName);
@@ -111,12 +118,16 @@ public class VolumetricCloudFeature : ScriptableRendererFeature
                 frustumCorners.SetRow(2, topRight);
                 frustumCorners.SetRow(3, topLeft);
                 Set.CloudMaterial.SetMatrix("_FrustumCornersRay", frustumCorners);
-                Set.CloudMaterial.SetFloat("_ZFar", camera.farClipPlane);
 
             #endregion
 
                 Set.CloudMaterial.SetInt("_Width", width - 1);
                 Set.CloudMaterial.SetInt("_Height", height - 1);
+                Set.CloudMaterial.SetTexture("_BlueNoiseTex", Set.BlueNoiseTex);
+                Set.CloudMaterial.SetVector("_BlueNoiseTexUV",
+                    new Vector4((float)width / (float)Set.BlueNoiseTex.width,
+                        (float)height / (float)Set.BlueNoiseTex.height, 0, 0));
+
                 Set.CloudMaterial.SetInt("_FrameCount", frameCount);
                 //如果不开启分帧渲染
                 if (Set.FrameBlocking == FrameBlock._Off)
@@ -146,12 +157,9 @@ public class VolumetricCloudFeature : ScriptableRendererFeature
                     cmd.GetTemporaryRT(temTextureID, width, height, 0, FilterMode.Point,
                         format: RenderTextureFormat.ARGB32);
 
-                    cameraColorTex = renderingData.cameraData.renderer.cameraColorTargetHandle;
                     cmd.Blit(cameraColorTex, temTextureID, Set.CloudMaterial, 0);
                     cmd.Blit(temTextureID, cameraColorTex, Set.CloudMaterial, 1);
 
-                    //执行
-                    //context.ExecuteCommandBuffer(cmd);
                     //释放资源
                     cmd.ReleaseTemporaryRT(temTextureID);
                 }
@@ -159,8 +167,6 @@ public class VolumetricCloudFeature : ScriptableRendererFeature
                 {
                     cmd.Blit(cloudTex[rtSwitch % 2], cloudTex[(rtSwitch + 1) % 2], Set.CloudMaterial, 0);
                     cmd.Blit(cloudTex[(rtSwitch + 1) % 2], cameraColorTex, Set.CloudMaterial, 1);
-                    //执行
-                    //context.ExecuteCommandBuffer(cmd);
                 }
             }
 
@@ -205,9 +211,9 @@ public class VolumetricCloudFeature : ScriptableRendererFeature
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
-        if (!Set.CloudMaterial)
+        if (!Set.CloudMaterial||!Set.BlueNoiseTex)
         {
-            Debug.LogError("材质球丢失！请设置材质球");
+            Debug.LogError("体积云材质球或白噪声纹理丢失！请在Renderfeature内设置");
             return;
         }
 

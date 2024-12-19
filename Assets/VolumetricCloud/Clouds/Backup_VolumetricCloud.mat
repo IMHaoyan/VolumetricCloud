@@ -7,17 +7,17 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: VolumetricCloud
+  m_Name: Backup_VolumetricCloud
   m_Shader: {fileID: 4800000, guid: efbf066279dba484abe6f4c1f954fde6, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
-  - _2X2
+  - _INTERPO_ON
   m_InvalidKeywords:
   - _ADAPTIVEMARCH_ON
   - _DEBUGSHAPE_ON
   - _DITHERINGON_ON
-  - _INTERPO_OFF
+  - _OFF
   - _TEST_OFF
   - _USEPHASE_ON
   m_LightmapFlags: 4
@@ -63,12 +63,12 @@ Material:
     - _BlueNoiseStrength: 6.5
     - _DirectLightMultiplier: 3.5
     - _DitheringON: 1
-    - _INTERPO: 1
+    - _INTERPO: 0
     - _LoopCount: 128
     - _MaxStepSize: 10000
     - _TEST: 1
     - _WindSpeed: 1
-    - _ZFar: 50000
+    - _ZFar: 30000
     - _albedo: 0.9
     - _ambientlerp: 0.031
     - _baseShapeDetailEffect: 0.528

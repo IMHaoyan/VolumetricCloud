@@ -1,8 +1,4 @@
 CBUFFER_START(UnityPerMaterial)
-    float4x4 _CurrentViewProjectionInverseMatrix;
-    float4x4 _FrustumCornersRay;
-    float4 _MainTex_TexelSize;
-    float _ZFar;
 
     float _MaxStepSize;
     float _LoopCount;
@@ -16,8 +12,6 @@ CBUFFER_START(UnityPerMaterial)
     float4 _WeatherTex_ST;
     float4 _ShapeTex_ST;
 
-    float4 _BlueNoiseTex_ST;
-    //float2 _BlueNoiseTexUV;
     float _BlueNoiseStrength;
 
     float4 _CloudHeightRange;
@@ -50,13 +44,6 @@ CBUFFER_START(UnityPerMaterial)
     float4 _embientColor;
 CBUFFER_END
 
-TEXTURE2D(_MainTex);
-SAMPLER(sampler_MainTex);
-TEXTURE2D(_CameraDepthTexture);
-SAMPLER(sampler_CameraDepthTexture);
-
-TEXTURE2D(_BlueNoiseTex);
-SAMPLER(sampler_BlueNoiseTex);
 
 TEXTURE2D(_WeatherTex);
 SAMPLER(sampler_WeatherTex);
@@ -117,6 +104,8 @@ float phase(float a, float g)
     //return max((1 - _blendG) * HG(a, _g.x), HG(a, _g.y));
     //return (1 - _blendG) * HG(a, _g.x) + _blendG * HG(a, _g.y);
 }
+
+//----------------------------- Math ---------------------------------------------//
 
 float2 RaySphereDst(float3 sphereCenter, float sphereRadius, float3 pos, float3 rayDir)
 {
@@ -179,6 +168,8 @@ float Remap(float original_value, float original_min, float original_max, float 
     return new_min + (original_value - original_min) / (original_max - original_min) * (new_max - new_min);
 }
 
+//----------------------------- Cloud ---------------------------------------------//
+
 float GetCloudTypeDensity(float heightFraction, float cloud_min, float cloud_max, float feather)
 {
     return saturate(Remap(heightFraction, cloud_min, cloud_min + feather * 0.5, 0, 1))
@@ -196,7 +187,36 @@ float BeerPowder(float tau, float sigma_t)
     return 2.0 * exp(-tau * sigma_t) * (1.0 - exp(-2.0 * tau * sigma_t));
 }
 
-//-----------------------------------------------------------------------------------------------
+//----------------------------- Optimization ---------------------------------------------//
+
+//获取索引， 给定一个uv， 纹理宽度高度，以及要分帧的次数，返回当前uv所对应的迭代索引
+int GetIndex(float2 uv, int width, int height, int iterationCount)
+{
+    //分帧渲染时的顺序索引
+    int FrameOrder_2x2[] = {
+        0, 2, 3, 1
+    };
+    int FrameOrder_4x4[] = {
+        0, 8, 2, 10,
+        12, 4, 14, 6,
+        3, 11, 1, 9,
+        15, 7, 13, 5
+    };
+    
+    int x = floor(uv.x * width / 8) % iterationCount;   //每8*8个像素为一个最小单位组
+    int y = floor(uv.y * height / 8) % iterationCount;
+    int index = x + y * iterationCount;
+    
+    if (iterationCount == 2)
+    {
+        index = FrameOrder_2x2[index];
+    }
+    if(iterationCount == 4)
+    {
+        index = FrameOrder_4x4[index];
+    }
+    return index;
+}
 
 // _display1 ("------------------TEST----------------------", Int) = 1
 // [KeywordEnum(ON, OFF)] _TEST ("_TEST", Float) = 0
