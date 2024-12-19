@@ -32,7 +32,8 @@ Shader "URPCustom/Volume/myRayMarching"
         _display0 ("---------------LightMarching-------------------", Int) = 1
         _MaxStepSize ("MaxStepSize", Float) = 0.5
         [Toggle]_showTruncation ("_showTruncation ", Float) = 1
-        _LoopCount ("LoopCount", Float) = 25
+        _stepResolution ("_stepResolution", Float) = 128
+        _maxLoopCount  ("_maxLoopCount(不超过_stepResolution，小于_stepResolution时候会截断部分云)", Float) = 128
 
         [Toggle]_AdaptiveMarch ("AdaptiveMarch ", Float) = 1
 
@@ -83,6 +84,8 @@ Shader "URPCustom/Volume/myRayMarching"
         float4x4 _FrustumCornersRay;
         float4 _MainTex_TexelSize;
 
+    float _maxLoopCount;
+        float _stepResolution;
         //蓝噪声uv
         float2 _BlueNoiseTexUV;
         //当前绘制帧数
@@ -311,8 +314,9 @@ Shader "URPCustom/Volume/myRayMarching"
                 float tau = 0.0;
                 float transmittance = 1.0;
 
-                int maxLoopCount = _LoopCount;
-                float stepsize = min(inCloudMarchLimit / maxLoopCount, _MaxStepSize);
+                float stepResolution = _stepResolution;
+                stepResolution = lerp(_stepResolution, _stepResolution/4, abs(dot(direction,half3(0,1,0)))) ;
+                float stepsize = min(inCloudMarchLimit / stepResolution, _MaxStepSize);
                 if (stepsize == _MaxStepSize)
                 {
                     //stepsize如果过大，会过于有层次感，标记出步进长度使用最大限制值的情况，此时使用maxstepsize
@@ -337,7 +341,7 @@ Shader "URPCustom/Volume/myRayMarching"
                 float densityPrevious = 0; //上一次采样密度
                 int densitySampleCount_zero = 0; //0密度采样次数
                 float longstep = 2 * stepsize;
-                for (int i = 0; i < maxLoopCount; i++)
+                for (int i = 0; i < _maxLoopCount; i++)
                 {
                     if (_AdaptiveMarch && densityTest <= DensityEPS)
                     {

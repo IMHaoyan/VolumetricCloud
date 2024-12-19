@@ -1,7 +1,6 @@
 CBUFFER_START(UnityPerMaterial)
 
     float _MaxStepSize;
-    float _LoopCount;
     float _g1;
     float _g2;
     float _blendG;
