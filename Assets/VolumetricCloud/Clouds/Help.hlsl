@@ -1,5 +1,4 @@
 CBUFFER_START(UnityPerMaterial)
-
     float _MaxStepSize;
     float _g1;
     float _g2;
@@ -201,16 +200,16 @@ int GetIndex(float2 uv, int width, int height, int iterationCount)
         3, 11, 1, 9,
         15, 7, 13, 5
     };
-    
-    int x = floor(uv.x * width / 8) % iterationCount;   //每8*8个像素为一个最小单位组
+
+    int x = floor(uv.x * width / 8) % iterationCount; //每8*8个像素为一个最小单位组
     int y = floor(uv.y * height / 8) % iterationCount;
     int index = x + y * iterationCount;
-    
+
     if (iterationCount == 2)
     {
         index = FrameOrder_2x2[index];
     }
-    if(iterationCount == 4)
+    if (iterationCount == 4)
     {
         index = FrameOrder_4x4[index];
     }

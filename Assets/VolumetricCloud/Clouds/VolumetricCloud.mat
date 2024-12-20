@@ -88,6 +88,7 @@ Material:
     - _flag: 0
     - _g1: -0.5
     - _g2: 0.5
+    - _maxLoopCount: 512
     - _octaves: 8
     - _powdensity: 1
     - _showDensity: 0
@@ -96,6 +97,7 @@ Material:
     - _sig_s: 0.9
     - _sigma_t: 1
     - _stepCount: 16
+    - _stepResolution: 512
     - _usePhase: 1
     - _windSpeed: 0
     m_Colors:

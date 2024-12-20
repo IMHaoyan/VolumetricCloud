@@ -22,7 +22,7 @@ public class VolumetricCloudFeature : ScriptableRendererFeature
         public RenderPassEvent PassEvent = RenderPassEvent.AfterRenderingTransparents; //半透明物体应该遮挡云
 
         public Texture2D BlueNoiseTex;
-        
+
         //体积云渲染目标比例
         [Range(0.1f, 1)] public float RTScale = 0.5f;
 
@@ -211,7 +211,7 @@ public class VolumetricCloudFeature : ScriptableRendererFeature
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
-        if (!Set.CloudMaterial||!Set.BlueNoiseTex)
+        if (!Set.CloudMaterial || !Set.BlueNoiseTex)
         {
             Debug.LogError("体积云材质球或白噪声纹理丢失！请在Renderfeature内设置");
             return;

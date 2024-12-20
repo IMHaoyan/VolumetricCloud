@@ -52,7 +52,7 @@ MonoBehaviour:
     CS: {fileID: 7200000, guid: fe0f8a511266cb74e85fde2d0dfbbdd4, type: 3}
     GroundRadius: 6360000
     SeaLevel: -1
-    MultiScatteringScale: 1
+    MultiScatteringScale: -6.42
     AtmosphereHeight: 60000
     RayleighScatteringScale: 1
     RayleighExponentialDistribution: 8000
@@ -147,9 +147,9 @@ MonoBehaviour:
     CloudMaterial: {fileID: 2100000, guid: 018aad1c2bba0f344991d60275b01fe5, type: 2}
     PassEvent: 400
     BlueNoiseTex: {fileID: 2800000, guid: 4fbeaa71ff471a44da044fabe12fdbf8, type: 3}
-    RTScale: 0.5
+    RTScale: 0.25
     FrameBlocking: 4
-    ShieldWidth: 400
+    ShieldWidth: 300
     IsFrameDebug: 0
     FrameDebug: 1
 --- !u!114 &5969759460971407093

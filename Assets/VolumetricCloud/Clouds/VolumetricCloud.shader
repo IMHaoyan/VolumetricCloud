@@ -33,7 +33,7 @@ Shader "URPCustom/Volume/myRayMarching"
         _MaxStepSize ("MaxStepSize", Float) = 0.5
         [Toggle]_showTruncation ("_showTruncation ", Float) = 1
         _stepResolution ("_stepResolution", Float) = 128
-        _maxLoopCount  ("_maxLoopCount(不超过_stepResolution，小于_stepResolution时候会截断部分云)", Float) = 128
+        _maxLoopCount ("_maxLoopCount(不超过_stepResolution，小于_stepResolution时候会截断部分云)", Float) = 128
 
         [Toggle]_AdaptiveMarch ("AdaptiveMarch ", Float) = 1
 
@@ -84,7 +84,7 @@ Shader "URPCustom/Volume/myRayMarching"
         float4x4 _FrustumCornersRay;
         float4 _MainTex_TexelSize;
 
-    float _maxLoopCount;
+        float _maxLoopCount;
         float _stepResolution;
         //蓝噪声uv
         float2 _BlueNoiseTexUV;
@@ -253,7 +253,7 @@ Shader "URPCustom/Volume/myRayMarching"
                     tau += SampleCloudDensity(position) * stepSize; //步进的时候采样噪音累计受灯光影响密度
                 }
 
-                float light_attenuation = Beer(tau, _sigma_t);
+                float light_attenuation = BeerPowder(tau, _sigma_t);
                 float3 lightColor = mainLight.color;
                 //lightColor = SampleSH(mainLight.direction);
                 // lightColor = half3(1,0,0);
@@ -315,7 +315,7 @@ Shader "URPCustom/Volume/myRayMarching"
                 float transmittance = 1.0;
 
                 float stepResolution = _stepResolution;
-                stepResolution = lerp(_stepResolution, _stepResolution/4, abs(dot(direction,half3(0,1,0)))) ;
+                stepResolution = lerp(_stepResolution, _stepResolution / 4, abs(dot(direction, half3(0, 1, 0))));
                 float stepsize = min(inCloudMarchLimit / stepResolution, _MaxStepSize);
                 if (stepsize == _MaxStepSize)
                 {
@@ -375,7 +375,7 @@ Shader "URPCustom/Volume/myRayMarching"
                             break;
                         }
                         //longstep = 2 * stepsize;
-                        
+
                         inCloudMarchedLength += stepsize;
                         currentPos += direction * stepsize;
 
@@ -500,7 +500,7 @@ Shader "URPCustom/Volume/myRayMarching"
                 //准备数据
                 float3 EarthCenter = float3(camPos.x, -EarthRadius, camPos.z);
                 float2 rayHitCloudInfo = RayCloudLayerDst(EarthCenter, EarthRadius, _CloudHeightRange.x,
-                                                                 _CloudHeightRange.y, camPos, viewDir);
+                                                          _CloudHeightRange.y, camPos, viewDir);
                 float inCloudMarchLimit = min(camToOpaque - rayHitCloudInfo.x, rayHitCloudInfo.y);
 
                 //开始raymarching
