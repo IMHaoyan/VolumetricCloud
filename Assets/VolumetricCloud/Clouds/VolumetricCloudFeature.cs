@@ -1,3 +1,4 @@
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
@@ -15,6 +16,12 @@ public class VolumetricCloudFeature : ScriptableRendererFeature
     [System.Serializable]
     public class Setting
     {
+        [Header("Luts Computation")] public float4 cloudLayer1;
+        public float4 cloudLayer2;
+        public float4 cloudLayer3;
+
+        public ComputeShader CS;
+
         //后处理进行体积云云渲染的材质
         public Material CloudMaterial;
 
@@ -42,6 +49,7 @@ public class VolumetricCloudFeature : ScriptableRendererFeature
     class VolumetricCloudPass : ScriptableRenderPass
     {
         public Setting Set;
+        RenderTexture verticalProfileLut;
         public string cmdName;
 
         public RenderTargetIdentifier cameraColorTex;
@@ -76,6 +84,16 @@ public class VolumetricCloudFeature : ScriptableRendererFeature
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             cameraColorTex = renderingData.cameraData.renderer.cameraColorTargetHandle;
+            
+            RenderTextureDescriptor desc = new RenderTextureDescriptor(64, 64, RenderTextureFormat.ARGB32, 0);
+            desc.enableRandomWrite = true; // 允许随机写入
+            verticalProfileLut = RenderTexture.GetTemporary(desc);
+            //
+            //
+            // verticalProfileLut = RenderTexture.GetTemporary(64, 64, 0, RenderTextureFormat.ARGB32);
+            // verticalProfileLut.enableRandomWrite = true;
+            
+            //verticalProfileLut.sRGB =;
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -120,6 +138,15 @@ public class VolumetricCloudFeature : ScriptableRendererFeature
                 Set.CloudMaterial.SetMatrix("_FrustumCornersRay", frustumCorners);
 
             #endregion
+
+                //CS
+                cmd.SetGlobalTexture("_cloudLut", verticalProfileLut);
+                int cloudKernal = Set.CS.FindKernel("CloudCS");
+                Set.CS.SetTexture(cloudKernal, "_Result", verticalProfileLut);
+                Set.CS.SetVector("_cloudLayer1", Set.cloudLayer1);
+                Set.CS.SetVector("_cloudLayer2", Set.cloudLayer2);
+                Set.CS.SetVector("_cloudLayer3", Set.cloudLayer3);
+                Set.CS.Dispatch(cloudKernal, 8, 8, 1); //(64,64) /8
 
                 Set.CloudMaterial.SetInt("_Width", width - 1);
                 Set.CloudMaterial.SetInt("_Height", height - 1);

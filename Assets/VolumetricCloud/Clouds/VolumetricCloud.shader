@@ -156,7 +156,7 @@ Shader "URPCustom/Volume/myRayMarching"
                                                            _stratusInfo.w);
                 float cumulusDensity = GetCloudTypeDensity(heightFraction, _cumulusInfo.x, _cumulusInfo.y,
                                                            _cumulusInfo.w);
-                // 可以通过手动调整weatherData.b 以 debug不同云属的云
+                // 可以通过手动调整cloud type: weatherData.b 以 debug不同云属的云
                 float cloudTypeDensity = lerp(stratusDensity, cumulusDensity, weatherData.b);
 
                 if (_debugShape == 1 && _debugShapeFlag == 1)

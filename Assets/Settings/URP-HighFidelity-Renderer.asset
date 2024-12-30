@@ -144,6 +144,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Active: 1
   Set:
+    cloudLayer1:
+      x: 0.04
+      y: 0.37
+      z: 0
+      w: 0.1
+    cloudLayer2:
+      x: 0.05
+      y: 0.7
+      z: 0
+      w: 0.28
+    cloudLayer3:
+      x: 0.05
+      y: 1
+      z: 0
+      w: 0.23
+    CS: {fileID: 7200000, guid: 78cc9ece25b7dec4c821e3f012fef138, type: 3}
     CloudMaterial: {fileID: 2100000, guid: 018aad1c2bba0f344991d60275b01fe5, type: 2}
     PassEvent: 400
     BlueNoiseTex: {fileID: 2800000, guid: 4fbeaa71ff471a44da044fabe12fdbf8, type: 3}

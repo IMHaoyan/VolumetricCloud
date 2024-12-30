@@ -1,0 +1,44 @@
+//CloudCS用以计算verticalProfileLut
+
+#pragma kernel CloudCS
+RWTexture2D<half4> _Result;
+float4 _cloudLayer1;
+float4 _cloudLayer2;
+float4 _cloudLayer3;
+
+float Remap(float original_value, float original_min, float original_max, float new_min, float new_max)
+{
+    return new_min + (original_value - original_min) / (original_max - original_min) * (new_max - new_min);
+}
+
+float GetCloudTypeDensity(float heightFraction, float cloud_min, float cloud_max, float feather)
+{
+    return saturate(Remap(heightFraction, cloud_min, cloud_min + feather * 0.5, 0, 1))
+        * saturate(Remap(heightFraction, cloud_max - feather, cloud_max, 1, 0));
+}
+
+float Interpolate(float start, float end, float mid, float t)
+{
+    float a = start, b = mid, c = end;
+    return (1 - t) * (1 - t) * a + 2 * (1 - t) * t * b + t * t * c;
+}
+
+float getCloudTypeDensity(float cloudType, float heightFraction)
+{
+    float stratusDensity = GetCloudTypeDensity(heightFraction, _cloudLayer1.x, _cloudLayer1.y, _cloudLayer1.w);
+    float stratuscumulusDensity = GetCloudTypeDensity(heightFraction, _cloudLayer2.x, _cloudLayer2.y, _cloudLayer2.w);
+    float cumulusDensity = GetCloudTypeDensity(heightFraction, _cloudLayer3.x, _cloudLayer3.y, _cloudLayer3.w);
+    float cloudTypeDensity = Interpolate(stratusDensity, cumulusDensity, stratuscumulusDensity, cloudType);
+    return cloudTypeDensity;
+}
+
+[numthreads(8, 8, 1)]
+void CloudCS(uint3 id : SV_DispatchThreadID)
+{
+    float2 uv;
+    uv.x = (id.x + 0.5) / 64.0;
+    uv.y = (id.y + 0.5) / 64.0;
+    //_Result[id.xy] = float4(uv.x, uv.y, 0, 1);
+    float cloudTypeDensity = getCloudTypeDensity(uv.x, uv.y);
+    _Result[id.xy] = float4(float3(1, 1, 1) * cloudTypeDensity, 1);
+}
