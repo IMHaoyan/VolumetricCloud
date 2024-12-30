@@ -84,16 +84,16 @@ public class VolumetricCloudFeature : ScriptableRendererFeature
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             cameraColorTex = renderingData.cameraData.renderer.cameraColorTargetHandle;
-            
+
             RenderTextureDescriptor desc = new RenderTextureDescriptor(64, 64, RenderTextureFormat.ARGB32, 0);
             desc.enableRandomWrite = true; // 允许随机写入
             verticalProfileLut = RenderTexture.GetTemporary(desc);
-            //
-            //
+
+
             // verticalProfileLut = RenderTexture.GetTemporary(64, 64, 0, RenderTextureFormat.ARGB32);
             // verticalProfileLut.enableRandomWrite = true;
-            
-            //verticalProfileLut.sRGB =;
+
+            //Debug.Log(verticalProfileLut.sRGB);
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
