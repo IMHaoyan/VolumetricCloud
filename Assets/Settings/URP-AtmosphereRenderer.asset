@@ -47,12 +47,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c601c63f7f301754381201e3204e79c3, type: 3}
   m_Name: AtmosphereRenderFeature
   m_EditorClassIdentifier: 
-  m_Active: 0
+  m_Active: 1
   settings:
     CS: {fileID: 7200000, guid: fe0f8a511266cb74e85fde2d0dfbbdd4, type: 3}
     GroundRadius: 6360000
     SeaLevel: -1
-    MultiScatteringScale: -10
+    MultiScatteringScale: 1
     AtmosphereHeight: 60000
     RayleighScatteringScale: 1
     RayleighExponentialDistribution: 8000
@@ -76,7 +76,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: de640fe3d0db1804a85f9fc8f5cadab6, type: 3}
-  m_Name: URP-HighFidelity-Renderer
+  m_Name: URP-AtmosphereRenderer
   m_EditorClassIdentifier: 
   debugShaders:
     debugReplacementPS: {fileID: 4800000, guid: cf852408f2e174538bcd9b7fda1c5ae7,
@@ -180,7 +180,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9ee34884cc6f0fb49ba03122f7c8a3cb, type: 3}
   m_Name: AerialPerspectiveRF
   m_EditorClassIdentifier: 
-  m_Active: 0
+  m_Active: 1
   mySetting:
     passEvent: 550
     AerialPerspecMat: {fileID: 2100000, guid: 0a307b5b87598324e95baf0e59a682f8, type: 2}
