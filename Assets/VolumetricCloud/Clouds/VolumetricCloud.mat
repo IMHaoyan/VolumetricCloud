@@ -12,14 +12,16 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
-  - _2X2
   - _INTERPO_ON
+  - _OFF
   m_InvalidKeywords:
   - _ADAPTIVEMARCH_ON
+  - _CLOUDLUT_ON
   - _DEBUGSHAPE_ON
   - _DITHERINGON_ON
   - _TEST_OFF
   - _USEPHASE_ON
+  - _VERTICALPROFILELUT_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -61,12 +63,15 @@ Material:
     - _AmbinetScale0: 0.637
     - _AmbinetScale1: 0.776
     - _BlueNoiseStrength: 8
+    - _CLOUDLUT: 0
+    - _CloudLUT: 0
     - _DirectLightMultiplier: 3.5
     - _DitheringON: 1
     - _INTERPO: 0
     - _LoopCount: 128
     - _MaxStepSize: 1024
     - _TEST: 1
+    - _VerticalProfileLut: 0
     - _WindSpeed: 1
     - _ZFar: 50000
     - _albedo: 0.9

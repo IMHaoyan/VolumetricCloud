@@ -140,9 +140,12 @@ public class VolumetricCloudFeature : ScriptableRendererFeature
             #endregion
 
                 //CS
-                cmd.SetGlobalTexture("_cloudLut", verticalProfileLut);
+                cmd.SetGlobalTexture("_VerticalProfileLut", verticalProfileLut);
                 int cloudKernal = Set.CS.FindKernel("CloudCS");
                 Set.CS.SetTexture(cloudKernal, "_Result", verticalProfileLut);
+                cmd.SetGlobalVector("_cloudLayer1", Set.cloudLayer1);
+                cmd.SetGlobalVector("_cloudLayer2", Set.cloudLayer2);
+                cmd.SetGlobalVector("_cloudLayer3", Set.cloudLayer3);
                 Set.CS.SetVector("_cloudLayer1", Set.cloudLayer1);
                 Set.CS.SetVector("_cloudLayer2", Set.cloudLayer2);
                 Set.CS.SetVector("_cloudLayer3", Set.cloudLayer3);

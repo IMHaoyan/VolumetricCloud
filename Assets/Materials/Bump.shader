@@ -1,6 +1,10 @@
 Shader "URPCustom/BumpMap" {
     Properties {
-        _Test ("Test", Range(0, 5)) = 1
+        _TintColor ("TintColor", Color) = (1, 1, 1, 1)
+        _MainTex ("BaseMap", 2D) = "white" { }
+        _NormalMap ("NormalMap", 2D) = "bump" { }
+        _NormalScale ("NormalScale", Range(-1, 1)) = 1.0
+        _Gloss ("Gloss", Range(8, 32)) = 20
     }
     SubShader {
         HLSLINCLUDE
@@ -11,15 +15,13 @@ Shader "URPCustom/BumpMap" {
             half4 _TintColor;
             float4 _MainTex_ST;
             float _NormalScale;
-            float _Test;
+            float _Gloss;
         CBUFFER_END
         
         TEXTURE2D(_MainTex);
         SAMPLER(sampler_MainTex);
         TEXTURE2D(_NormalMap);
         SAMPLER(sampler_NormalMap);
-        TEXTURE2D(_cloudLut);
-        SAMPLER(sampler_cloudLut);
 
         struct a2v {
             float3 positionOS : POSITION;
@@ -50,7 +52,7 @@ Shader "URPCustom/BumpMap" {
                 o.positionCS = positionInputs.positionCS;
                 float3 positionWS = positionInputs.positionWS;
 
-                o.uv = (i.texcoord);
+                o.uv = TRANSFORM_TEX(i.texcoord, _MainTex);
 
                 VertexNormalInputs normalInputs = GetVertexNormalInputs(i.normalOS, i.tangentOS);
                 o.tangentWS.xyz = normalInputs.tangentWS;// TransformObjectToWorldDir(i.tangentOS.xyz);
@@ -75,14 +77,25 @@ Shader "URPCustom/BumpMap" {
                 float3 positionWS = float3(i.tangentWS.w, i.bitangentWS.w, i.normalWS.w);
                 half4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv) * _TintColor;
                 Light mainLight = GetMainLight();
+                half3 ambient = 0;
+                ambient +=SampleSH(normalWS) * albedo * 0.3;
 
-                half4 col = SAMPLE_TEXTURE2D(_cloudLut, sampler_cloudLut, i.uv).rgba;
-               // return half4(SampleSH(normalWS)*_Test, 1);
-                return half4(col.rgb,1);
+                float diff = saturate(dot(normalWS, mainLight.direction));
+                half3 diffuse = diff * albedo.rgb * mainLight.color;
+                
+                float3 viewDir = normalize(_WorldSpaceCameraPos - positionWS);
+                float3 halfDir = normalize(mainLight.direction + viewDir);
+                float spec = pow(saturate(dot(halfDir, normalWS)), _Gloss);
+                half3 specular = spec * albedo.rgb  * mainLight.color;
+                
+                half3 col = ambient + diffuse + specular;
+                return half4(col, 1);
             }
             ENDHLSL
         }
-        UsePass "Universal Render Pipeline/Lit/DepthOnly"
-        UsePass "Universal Render Pipeline/Lit/DepthNormals"
+
+//        UsePass "Universal Render Pipeline/Lit/ShadowCaster"
+//        UsePass "Universal Render Pipeline/Lit/DepthNormals"
+//        UsePass "Universal Render Pipeline/Lit/DepthOnly"
     }
 }
