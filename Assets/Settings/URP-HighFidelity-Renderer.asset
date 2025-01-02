@@ -145,20 +145,20 @@ MonoBehaviour:
   m_Active: 1
   Set:
     cloudLayer1:
-      x: 0.04
-      y: 0.37
+      x: 0.15
+      y: 0.4
       z: 0
-      w: 0.1
+      w: 0.2
     cloudLayer2:
-      x: 0.05
-      y: 0.7
+      x: 0.1
+      y: 0.65
       z: 0
-      w: 0.28
+      w: 0.35
     cloudLayer3:
-      x: 0.05
+      x: 0
       y: 1
       z: 0
-      w: 0.23
+      w: 0.28
     CS: {fileID: 7200000, guid: 78cc9ece25b7dec4c821e3f012fef138, type: 3}
     CloudMaterial: {fileID: 2100000, guid: 018aad1c2bba0f344991d60275b01fe5, type: 2}
     PassEvent: 400
