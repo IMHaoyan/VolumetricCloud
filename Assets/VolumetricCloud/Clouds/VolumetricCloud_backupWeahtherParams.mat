@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: VolumetricCloud
+  m_Name: VolumetricCloud_backupWeahtherParams
   m_Shader: {fileID: 4800000, guid: efbf066279dba484abe6f4c1f954fde6, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -54,8 +54,8 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _WeatherTex:
         m_Texture: {fileID: 2800000, guid: f827c59aeee3c62408b07d116e1d26bb, type: 3}
-        m_Scale: {x: 30, y: 0}
-        m_Offset: {x: 0.625, y: 0.59}
+        m_Scale: {x: 14.1, y: 0}
+        m_Offset: {x: 0.47, y: 0.54}
     m_Ints: []
     m_Floats:
     - _AdaptiveMarch: 1
@@ -80,11 +80,11 @@ Material:
     - _beerMultiplier: 2
     - _blendG: 0.8
     - _chosePhase: 1
-    - _cloudCovery: 1.2
+    - _cloudCovery: 1.5
     - _debugShape: 1
     - _debugShapeFlag: 3
     - _densityMul: 1
-    - _densityMultiplier: 0.0145
+    - _densityMultiplier: 0.0146
     - _detailEffect: 0.07
     - _display0: 0
     - _display1: 0
@@ -108,8 +108,8 @@ Material:
     m_Colors:
     - _CloudHeightRange: {r: 1500, g: 4000, b: 0, a: 0}
     - _WindDirection: {r: 0, g: 0, b: 0, a: 0}
-    - _cumulusInfo: {r: 0, g: 0, b: 0, a: 0}
+    - _cumulusInfo: {r: 0.14225, g: 1, b: 0, a: 0.516}
     - _embientColor: {r: 0.759, g: 0.8890635, b: 1, a: 1}
-    - _stratusInfo: {r: 0, g: 0, b: 0, a: 0}
+    - _stratusInfo: {r: 0.126, g: 0.476, b: 0, a: 0.336}
     - _windDirection: {r: 0.1376577, g: -0.1567618, b: 0.977996, a: 0}
   m_BuildTextureStacks: []
