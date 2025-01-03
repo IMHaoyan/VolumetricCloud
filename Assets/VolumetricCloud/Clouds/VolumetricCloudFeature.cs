@@ -87,6 +87,7 @@ public class VolumetricCloudFeature : ScriptableRendererFeature
 
             RenderTextureDescriptor desc = new RenderTextureDescriptor(64, 64, RenderTextureFormat.ARGB32, 0);
             desc.enableRandomWrite = true; // 允许随机写入
+            desc.sRGB = false;  // 纹理设置为线性空间
             verticalProfileLut = RenderTexture.GetTemporary(desc);
 
 
@@ -206,6 +207,7 @@ public class VolumetricCloudFeature : ScriptableRendererFeature
 
         public override void OnCameraCleanup(CommandBuffer cmd)
         {
+            RenderTexture.ReleaseTemporary(verticalProfileLut);
         }
     }
 
