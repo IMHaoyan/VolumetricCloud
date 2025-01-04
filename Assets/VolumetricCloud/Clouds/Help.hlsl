@@ -19,8 +19,6 @@ CBUFFER_START(UnityPerMaterial)
     float3 _windDirection;
     float _windSpeed;
 
-    float _cloudCovery;
-
     float _debugShape;
     float _debugShapeFlag;
 

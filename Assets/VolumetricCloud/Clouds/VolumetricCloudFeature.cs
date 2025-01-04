@@ -85,9 +85,9 @@ public class VolumetricCloudFeature : ScriptableRendererFeature
         {
             cameraColorTex = renderingData.cameraData.renderer.cameraColorTargetHandle;
 
-            RenderTextureDescriptor desc = new RenderTextureDescriptor(64, 64, RenderTextureFormat.ARGB32, 0);
+            RenderTextureDescriptor desc = new RenderTextureDescriptor(32, 16, RenderTextureFormat.ARGB32, 0);
             desc.enableRandomWrite = true; // 允许随机写入
-            desc.sRGB = false;  // 纹理设置为线性空间
+            desc.sRGB = false; // 纹理设置为线性空间
             verticalProfileLut = RenderTexture.GetTemporary(desc);
 
 
@@ -150,7 +150,7 @@ public class VolumetricCloudFeature : ScriptableRendererFeature
                 Set.CS.SetVector("_cloudLayer1", Set.cloudLayer1);
                 Set.CS.SetVector("_cloudLayer2", Set.cloudLayer2);
                 Set.CS.SetVector("_cloudLayer3", Set.cloudLayer3);
-                Set.CS.Dispatch(cloudKernal, 8, 8, 1); //(64,64) /8
+                Set.CS.Dispatch(cloudKernal, 4, 2, 1); //(32,16) /8 
 
                 Set.CloudMaterial.SetInt("_Width", width - 1);
                 Set.CloudMaterial.SetInt("_Height", height - 1);

@@ -8,10 +8,10 @@ Shader "URPCustom/Volume/myRayMarching"
         _stratusInfo ("_stratusInfo", Vector) = (0, 0, 0, 0)
         _cumulusInfo ("_cumulusInfo", Vector) = (0, 0, 0, 0)
 
-        [KeywordEnum(ON, OFF)] _VerticalProfileLut ("_VerticalProfileLutON", Float) = 0
+        [KeywordEnum(ON, OFF)] _VPLUT ("_VerticalLutON", Float) = 0
         _WeatherTex ("WeatherTex", 2D) = "white" { }
 
-        _cloudCovery ("_cloudCovery", Range(0, 20)) = 1
+        _cloudCoverage ("_cloudCoverage", Range(0, 20)) = 1
         _densityMultiplier ("densityMultiplier", Range(0, 0.1)) = 0.1
 
         [Toggle]_debugShape ("debugShape ", Float) = 0
@@ -78,6 +78,8 @@ Shader "URPCustom/Volume/myRayMarching"
         float4 _cloudLayer2;
         float4 _cloudLayer3;
 
+        float _cloudCoverage;
+
         float _ambientlerp;
         float4 _ShapeNoise_ST;
 
@@ -121,7 +123,7 @@ Shader "URPCustom/Volume/myRayMarching"
             #pragma vertex vert
             #pragma fragment frag
             #pragma multi_compile _ _INTERPO_ON
-            #pragma multi_compile _ _VerticalProfileLut_ON
+            #pragma multi_compile _ _VPLUT_ON
             #pragma multi_compile _OFF _2X2 _4X4
             //#pragma multi_compile _ _TEST_ON
 
@@ -155,54 +157,43 @@ Shader "URPCustom/Volume/myRayMarching"
                 //采样天气纹理，默认1000km平铺， r 密度, g 吸收率, b 云类型(0~1 => 层云~积云)
                 float2 weatherTexUV = dsiPos.xz * _WeatherTex_ST.x; //* _weatherTexTiling;  10.8
                 float4 weatherData = SAMPLE_TEXTURE2D_LOD(_WeatherTex, sampler_WeatherTex,
-                            weatherTexUV * 0.000001 + _WeatherTex_ST.zw + wind.xz * 0.01,
-                            0);
-
-                weatherData.r *= _cloudCovery;
-
-                if (_debugShape == 1 && _debugShapeFlag == 0)
-                {
-                    //WeatherMap
-                    return weatherData.r * _densityMultiplier;
-                }
+                                                          weatherTexUV * 0.000001 + _WeatherTex_ST.zw + wind.xz * 0.01,
+                                                          0);
+                float cloudCoverage = 1;
+                #if 0 //旧的weatherMap覆盖率
+                cloudCoverage = weatherData.r * _cloudCoverage;
+                #else
+                cloudCoverage = Remap(weatherData.r, 1 - _cloudCoverage, 1, 0, 1);
+                #endif
 
                 // 根据云属计算垂直密度, w通道为feather的比例
                 float heightFraction = Remap(currentPos.y, _CloudHeightRange.x, _CloudHeightRange.y, 0, 1);
 
 
                 // 可以通过手动调整cloud type: weatherData.b 以 debug不同云属的云
-                #if _VerticalProfileLut_ON
+                #if _VPLUT_ON
                 float2 LutUV = float2(weatherData.b, heightFraction);
-                float cloudTypeDensity = SAMPLE_TEXTURE2D_LOD(_VerticalProfileLut, sampler_VerticalProfileLut, LutUV, 0).r;
-                #else
-
-                #if 0
-                float stratusDensity = GetCloudTypeDensity(heightFraction, _stratusInfo.x, _stratusInfo.y,
-                                                           _stratusInfo.w);
-                float cumulusDensity = GetCloudTypeDensity(heightFraction, _cumulusInfo.x, _cumulusInfo.y,
-                                                           _cumulusInfo.w);
-                
-                float cloudTypeDensity = lerp(stratusDensity, cumulusDensity, weatherData.b);
-    
+                float vertical_profile = SAMPLE_TEXTURE2D_LOD(_VerticalProfileLut, sampler_VerticalProfileLut, LutUV, 0).r;
                 #else
                 float stratusDensity = GetCloudTypeDensity(heightFraction, _cloudLayer1.x, _cloudLayer1.y,
-                   _cloudLayer1.w);
+                                                           _cloudLayer1.w);
                 float stratuscumulusDensity = GetCloudTypeDensity(heightFraction, _cloudLayer2.x, _cloudLayer2.y,
-                                                         _cloudLayer2.w);
+                                                                  _cloudLayer2.w);
                 float cumulusDensity = GetCloudTypeDensity(heightFraction, _cloudLayer3.x, _cloudLayer3.y,
-       _cloudLayer3.w);
-                float cloudTypeDensity = Interpolate(stratusDensity, cumulusDensity, stratuscumulusDensity,
-        weatherData.b);
+                                                           _cloudLayer3.w);
+                float vertical_profile = Interpolate(stratusDensity, cumulusDensity, stratuscumulusDensity,
+                                                     weatherData.b);
                 #endif
 
-
-                #endif
-
-
-                if (_debugShape == 1 && _debugShapeFlag == 1)
+                if (_debugShape == 1 && _debugShapeFlag == 0)
+                {
+                    //WeatherMap
+                    return cloudCoverage * _densityMultiplier;
+                }
+                else if (_debugShape == 1 && _debugShapeFlag == 1)
                 {
                     //CloudType
-                    return weatherData.r * cloudTypeDensity * _densityMultiplier;
+                    return cloudCoverage * vertical_profile * _densityMultiplier;
                 }
 
                 //Nubis's Method
@@ -213,11 +204,11 @@ Shader "URPCustom/Volume/myRayMarching"
                 #if 1
                 float fbm = dot(shapeTexData.gba, float3(0.625, 0.25, 0.125)); //  (0.625, 0.25, 0.125)?
                 float baseShape = Remap(shapeTexData.r, saturate(-(1 - fbm)) * _baseShapeDetailEffect, 1.0, 0, 1.0);
-                float dimensionalProfile = weatherData.r * cloudTypeDensity;
+                float dimensionalProfile = cloudCoverage * vertical_profile;
                 return saturate(baseShape - (1 - dimensionalProfile)) * _densityMultiplier;
                 #else
                 // Nubis 2015
-                float dimensionalProfile = weatherData.r * cloudTypeDensity;
+                float dimensionalProfile = cloudCoverage * vertical_profile;
                 // horizontal weather * vertical cloud type density
                 float fbm = dot(shapeTexData.gba, float3(0.5, 0.25, 0.125)); //  (0.625, 0.25, 0.125)?
                 float baseShape = Remap(shapeTexData.r, saturate((1 - fbm) * _baseShapeDetailEffect), 1.0, 0, 1.0);
@@ -243,7 +234,7 @@ Shader "URPCustom/Volume/myRayMarching"
                 /*float fbm = dot(shapeTexData.gba, float3(0.5, 0.25, 0.125));//添加细节纹理
                 float baseShape = Remap(shapeTexData.r, saturate((1 - fbm) * _baseShapeDetailEffect), 1.0, 0, 1.0);
                 
-                float cloudDensity = baseShape * weatherData.r * cloudTypeDensity ;
+                float cloudDensity = baseShape * cloudCoverage * vertical_profile ;
     
                 if (_debugShape == 1 && _debugShapeFlag == 2) {
                     return cloudDensity * _densityMultiplier * 0.1;
@@ -271,8 +262,8 @@ Shader "URPCustom/Volume/myRayMarching"
                 float3 EarthCenter = float3(cameraPos.x, -EarthRadius, cameraPos.z);
                 //未考虑遮挡, 所以没有用到dstTravelled
                 float dstInsideSphere = RayCloudLayerDst(EarthCenter, EarthRadius, _CloudHeightRange.x,
-               _CloudHeightRange.y,
-               position, lightDir, false).y;
+                                                         _CloudHeightRange.y,
+                                                         position, lightDir, false).y;
 
                 float stepSize = dstInsideSphere / 8;
 
@@ -340,7 +331,7 @@ Shader "URPCustom/Volume/myRayMarching"
             }
 
             float4 cloudRayMarchingEarth(float3 camPos, float3 direction, float dstToCloud, float inCloudMarchLimit,
-                   float2 uv)
+                                         float2 uv)
             {
                 //不在包围盒内或被物体遮挡 直接显示背景
                 if (inCloudMarchLimit <= 0)
@@ -365,7 +356,7 @@ Shader "URPCustom/Volume/myRayMarching"
                 }
 
                 float blueNoise = SAMPLE_TEXTURE2D_LOD(_BlueNoiseTex, sampler_BlueNoiseTex,
-           uv * _BlueNoiseTexUV.xy + _Time.y*60, 0).r;
+                                                       uv * _BlueNoiseTexUV.xy + _Time.y*60, 0).r;
                 float3 startPos = camPos + direction * dstToCloud;
                 if (_DitheringON == 1)
                     startPos += (direction * stepsize) * blueNoise * _BlueNoiseStrength;
@@ -540,7 +531,7 @@ Shader "URPCustom/Volume/myRayMarching"
                 //准备数据
                 float3 EarthCenter = float3(camPos.x, -EarthRadius, camPos.z);
                 float2 rayHitCloudInfo = RayCloudLayerDst(EarthCenter, EarthRadius, _CloudHeightRange.x,
-                                                 _CloudHeightRange.y, camPos, viewDir);
+                    _CloudHeightRange.y, camPos, viewDir);
                 float inCloudMarchLimit = min(camToOpaque - rayHitCloudInfo.x, rayHitCloudInfo.y);
 
                 //开始raymarching

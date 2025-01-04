@@ -36,8 +36,8 @@ float getCloudTypeDensity(float cloudType, float heightFraction)
 void CloudCS(uint3 id : SV_DispatchThreadID)
 {
     float2 uv;
-    uv.x = (id.x + 0.5) / 64.0;
-    uv.y = (id.y + 0.5) / 64.0;
+    uv.x = (id.x + 0.5) / 32.0;
+    uv.y = (id.y + 0.5) / 16.0;
     //_Result[id.xy] = float4(uv.x, uv.y, 0, 1);
     float cloudTypeDensity = getCloudTypeDensity(uv.x, uv.y);
     _Result[id.xy] = float4(float3(1, 1, 1) * cloudTypeDensity, 1);
