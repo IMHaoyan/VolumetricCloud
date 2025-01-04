@@ -33,9 +33,6 @@ CBUFFER_START(UnityPerMaterial)
     float _DitheringON;
     float _baseShapeDetailEffect;
 
-    float4 _DetailShapeTex_ST;
-    float _detailEffect;
-
     float _AdaptiveMarch;
     float4 _embientColor;
 CBUFFER_END
@@ -161,7 +158,7 @@ float2 RayCloudLayerDst(float3 sphereCenter, float earthRadius, float heightMin,
 
 float Remap(float original_value, float original_min, float original_max, float new_min, float new_max)
 {
-    return new_min + (original_value - original_min) / (original_max - original_min) * (new_max - new_min);
+    return new_min + (original_value - original_min) / (original_max - original_min + 0.000001) * (new_max - new_min);
 }
 
 //----------------------------- Cloud ---------------------------------------------//

@@ -14,14 +14,16 @@ Material:
   m_ValidKeywords:
   - _INTERPO_ON
   - _OFF
+  - _VPLUT_ON
   m_InvalidKeywords:
   - _ADAPTIVEMARCH_ON
   - _CLOUDLUT_ON
-  - _DEBUGSHAPE_ON
   - _DITHERINGON_ON
   - _TEST_OFF
   - _USEPHASE_ON
+  - _VERTICALLUT_ON
   - _VERTICALPROFILELUT_ON
+  - _VPLUT_ON_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -71,20 +73,26 @@ Material:
     - _LoopCount: 128
     - _MaxStepSize: 1024
     - _TEST: 1
+    - _VPLUT: 0
+    - _VPLUT_ON: 0
+    - _VPLut: 1
+    - _VerticalLut: 0
     - _VerticalProfileLut: 0
     - _WindSpeed: 1
     - _ZFar: 50000
     - _albedo: 0.9
     - _ambientlerp: 0.031
-    - _baseShapeDetailEffect: 0.528
+    - _baseShapeDetailEffect: 0.1
+    - _baseShapeHFNoiseStrength: 0.5
     - _beerMultiplier: 2
     - _blendG: 0.8
     - _chosePhase: 1
-    - _cloudCovery: 1.2
-    - _debugShape: 1
-    - _debugShapeFlag: 3
+    - _cloudCoverage: 1
+    - _cloudCovery: 1
+    - _debugShape: 0
+    - _debugShapeFlag: 0
     - _densityMul: 1
-    - _densityMultiplier: 0.0145
+    - _densityMultiplier: 0.25
     - _detailEffect: 0.07
     - _display0: 0
     - _display1: 0

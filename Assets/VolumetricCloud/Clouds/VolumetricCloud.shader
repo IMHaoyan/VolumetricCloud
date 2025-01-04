@@ -5,21 +5,19 @@ Shader "URPCustom/Volume/myRayMarching"
         [HideInInspector]_MainTex ("MainTex", 2D) = "white" { }
 
         _CloudHeightRange ("_CloudHeightRange", Vector) = (1500, 4000, 0, 8000)
-        _stratusInfo ("_stratusInfo", Vector) = (0, 0, 0, 0)
-        _cumulusInfo ("_cumulusInfo", Vector) = (0, 0, 0, 0)
 
         [KeywordEnum(ON, OFF)] _VPLUT ("_VerticalLutON", Float) = 0
         _WeatherTex ("WeatherTex", 2D) = "white" { }
 
         _cloudCoverage ("_cloudCoverage", Range(0, 20)) = 1
-        _densityMultiplier ("densityMultiplier", Range(0, 0.1)) = 0.1
+        _densityMultiplier ("densityMultiplier (x 0.1)", Range(0, 1)) = 0.25
 
         [Toggle]_debugShape ("debugShape ", Float) = 0
-        [IntRange]_debugShapeFlag ("flag", Range(0, 3)) = 0
+        [IntRange]_debugShapeFlag ("flag", Range(0, 5)) = 0
 
 
         _ShapeTex ("ShapeTex", 3D) = "white" { }
-        _baseShapeDetailEffect ("_baseShapeDetailEffect", Range(0, 1)) = 0.5
+        _baseShapeHFNoiseStrength ("_baseShapeHFNoiseStrength", Range(0, 1)) = 0.5
 
 
         _DetailShapeTex ("DetailShapeTex", 3D) = "white" { }
@@ -79,6 +77,9 @@ Shader "URPCustom/Volume/myRayMarching"
         float4 _cloudLayer3;
 
         float _cloudCoverage;
+
+        float4 _DetailShapeTex_ST;
+        float _baseShapeHFNoiseStrength;
 
         float _ambientlerp;
         float4 _ShapeNoise_ST;
@@ -173,7 +174,8 @@ Shader "URPCustom/Volume/myRayMarching"
                 // 可以通过手动调整cloud type: weatherData.b 以 debug不同云属的云
                 #if _VPLUT_ON
                 float2 LutUV = float2(weatherData.b, heightFraction);
-                float vertical_profile = SAMPLE_TEXTURE2D_LOD(_VerticalProfileLut, sampler_VerticalProfileLut, LutUV, 0).r;
+                float vertical_profile = SAMPLE_TEXTURE2D_LOD(_VerticalProfileLut, sampler_VerticalProfileLut, LutUV, 0)
+                    .r;
                 #else
                 float stratusDensity = GetCloudTypeDensity(heightFraction, _cloudLayer1.x, _cloudLayer1.y,
                                                            _cloudLayer1.w);
@@ -185,16 +187,6 @@ Shader "URPCustom/Volume/myRayMarching"
                                                      weatherData.b);
                 #endif
 
-                if (_debugShape == 1 && _debugShapeFlag == 0)
-                {
-                    //WeatherMap
-                    return cloudCoverage * _densityMultiplier;
-                }
-                else if (_debugShape == 1 && _debugShapeFlag == 1)
-                {
-                    //CloudType
-                    return cloudCoverage * vertical_profile * _densityMultiplier;
-                }
 
                 //Nubis's Method
                 // 基础形状： Perlin-Worley(r通道) 三个频率逐渐增加的低频Worley噪声(gba通道) 
@@ -203,20 +195,52 @@ Shader "URPCustom/Volume/myRayMarching"
 
                 #if 1
                 float fbm = dot(shapeTexData.gba, float3(0.625, 0.25, 0.125)); //  (0.625, 0.25, 0.125)?
-                float baseShape = Remap(shapeTexData.r, saturate(-(1 - fbm)) * _baseShapeDetailEffect, 1.0, 0, 1.0);
+                float HFNoise = fbm;
+                float LFNoise = shapeTexData.r;
+                //参考：https://zhuanlan.zhihu.com/p/6243450539
+                float baseShape = Remap(LFNoise, (-HFNoise) * _baseShapeHFNoiseStrength, 1.0, 0, 1.0);
+
+                if (_debugShape == 1 && _debugShapeFlag == 0) //仅WeatherMap
+                {
+                    return cloudCoverage * _densityMultiplier * 0.05;
+                }
+
                 float dimensionalProfile = cloudCoverage * vertical_profile;
-                return saturate(baseShape - (1 - dimensionalProfile)) * _densityMultiplier;
+
+                if (_debugShape == 1 && _debugShapeFlag == 1) //dimensionalProfile
+                {
+                    //WeatherMap
+                    return dimensionalProfile * _densityMultiplier * 0.05;
+                }
+                if (_debugShape == 1 && _debugShapeFlag == 2) //Perlin-Worly
+                {
+                    //WeatherMap
+                    return shapeTexData.r * dimensionalProfile * _densityMultiplier * 0.05;
+                }
+                if (_debugShape == 1 && _debugShapeFlag == 3)
+                {
+                    //WeatherMap
+                    return baseShape * dimensionalProfile * _densityMultiplier * 0.05;
+                }
+
+                #if 1
+                return saturate(Remap(baseShape, 1 - dimensionalProfile, 1, 0, 1))
+                    * _densityMultiplier * 0.05;
+                #else//Nubis Evolved?
+                return saturate(baseShape - (1 - dimensionalProfile)) * _densityMultiplier * 0.05;
+                #endif
+
                 #else
                 // Nubis 2015
                 float dimensionalProfile = cloudCoverage * vertical_profile;
                 // horizontal weather * vertical cloud type density
                 float fbm = dot(shapeTexData.gba, float3(0.5, 0.25, 0.125)); //  (0.625, 0.25, 0.125)?
-                float baseShape = Remap(shapeTexData.r, saturate((1 - fbm) * _baseShapeDetailEffect), 1.0, 0, 1.0);
+                float baseShape = Remap(shapeTexData.r, saturate((1 - fbm) * _baseShapeHFNoiseStrength), 1.0, 0, 1.0);
                 float cloudDensity = baseShape * dimensionalProfile;
 
                 if (_debugShape == 1 && _debugShapeFlag == 2)
                 {
-                    return cloudDensity * _densityMultiplier;
+                    return cloudDensity * _densityMultiplier * 0.05;
                 }
 
                 float3 detailTex = SAMPLE_TEXTURE3D_LOD(_DetailShapeTex, sampler_DetailShapeTex,
@@ -229,10 +253,10 @@ Shader "URPCustom/Volume/myRayMarching"
                 // //通过使用remap映射细节噪声，可以保留基本形状，在边缘进行变化
                 //cloudDensity -= detailNoise * _detailEffect;
                 cloudDensity = Remap(cloudDensity, detailNoise * _detailEffect, 1.0, 0.0, 1.0);
-                return cloudDensity * _densityMultiplier;
+                return cloudDensity * _densityMultiplier * 0.05;
                 #endif
                 /*float fbm = dot(shapeTexData.gba, float3(0.5, 0.25, 0.125));//添加细节纹理
-                float baseShape = Remap(shapeTexData.r, saturate((1 - fbm) * _baseShapeDetailEffect), 1.0, 0, 1.0);
+                float baseShape = Remap(shapeTexData.r, saturate((1 - fbm) * _baseShapeHFNoiseStrength), 1.0, 0, 1.0);
                 
                 float cloudDensity = baseShape * cloudCoverage * vertical_profile ;
     
@@ -284,7 +308,7 @@ Shader "URPCustom/Volume/myRayMarching"
                     tau += SampleCloudDensity(position) * stepSize; //步进的时候采样噪音累计受灯光影响密度
                 }
 
-                float light_attenuation = BeerPowder(tau, _sigma_t);
+                float light_attenuation = Beer(tau, _sigma_t); //BeerPowder(tau, _sigma_t);
                 float3 lightColor = mainLight.color;
                 //lightColor = SampleSH(mainLight.direction);
                 // lightColor = half3(1,0,0);
@@ -531,7 +555,7 @@ Shader "URPCustom/Volume/myRayMarching"
                 //准备数据
                 float3 EarthCenter = float3(camPos.x, -EarthRadius, camPos.z);
                 float2 rayHitCloudInfo = RayCloudLayerDst(EarthCenter, EarthRadius, _CloudHeightRange.x,
-                    _CloudHeightRange.y, camPos, viewDir);
+                                                          _CloudHeightRange.y, camPos, viewDir);
                 float inCloudMarchLimit = min(camToOpaque - rayHitCloudInfo.x, rayHitCloudInfo.y);
 
                 //开始raymarching
