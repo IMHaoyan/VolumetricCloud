@@ -160,11 +160,11 @@ Shader "URPCustom/Volume/myRayMarching"
                 float4 weatherData = SAMPLE_TEXTURE2D_LOD(_WeatherTex, sampler_WeatherTex,
                                                           weatherTexUV * 0.000001 + _WeatherTex_ST.zw + wind.xz * 0.01,
                                                           0);
-                float cloudCoverage = 1;
+                float horizontal_profile = 1;
                 #if 0 //旧的weatherMap覆盖率
-                cloudCoverage = weatherData.r * _cloudCoverage;
+                horizontal_profile = weatherData.r * _cloudCoverage;
                 #else
-                cloudCoverage = Remap(weatherData.r, 1 - _cloudCoverage, 1, 0, 1);
+                horizontal_profile = Remap(weatherData.r, 1 - _cloudCoverage, 1, 0, 1);
                 #endif
 
                 // 根据云属计算垂直密度, w通道为feather的比例
@@ -202,10 +202,10 @@ Shader "URPCustom/Volume/myRayMarching"
 
                 if (_debugShape == 1 && _debugShapeFlag == 0) //仅WeatherMap
                 {
-                    return cloudCoverage * _densityMultiplier * 0.05;
+                    return horizontal_profile * _densityMultiplier * 0.05;
                 }
 
-                float dimensionalProfile = cloudCoverage * vertical_profile;
+                float dimensionalProfile = horizontal_profile * vertical_profile;
 
                 if (_debugShape == 1 && _debugShapeFlag == 1) //dimensionalProfile
                 {
@@ -232,7 +232,7 @@ Shader "URPCustom/Volume/myRayMarching"
 
                 #else
                 // Nubis 2015
-                float dimensionalProfile = cloudCoverage * vertical_profile;
+                float dimensionalProfile = horizontal_profile * vertical_profile;
                 // horizontal weather * vertical cloud type density
                 float fbm = dot(shapeTexData.gba, float3(0.5, 0.25, 0.125)); //  (0.625, 0.25, 0.125)?
                 float baseShape = Remap(shapeTexData.r, saturate((1 - fbm) * _baseShapeHFNoiseStrength), 1.0, 0, 1.0);
@@ -258,7 +258,7 @@ Shader "URPCustom/Volume/myRayMarching"
                 /*float fbm = dot(shapeTexData.gba, float3(0.5, 0.25, 0.125));//添加细节纹理
                 float baseShape = Remap(shapeTexData.r, saturate((1 - fbm) * _baseShapeHFNoiseStrength), 1.0, 0, 1.0);
                 
-                float cloudDensity = baseShape * cloudCoverage * vertical_profile ;
+                float cloudDensity = baseShape * horizontal_profile * vertical_profile ;
     
                 if (_debugShape == 1 && _debugShapeFlag == 2) {
                     return cloudDensity * _densityMultiplier * 0.1;
