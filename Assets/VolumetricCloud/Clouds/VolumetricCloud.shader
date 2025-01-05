@@ -81,6 +81,9 @@ Shader "URPCustom/Volume/myRayMarching"
         float4 _DetailShapeTex_ST;
         float _baseShapeHFNoiseStrength;
 
+        float _detailEffect;
+
+        
         float _ambientlerp;
         float4 _ShapeNoise_ST;
 
@@ -168,7 +171,8 @@ Shader "URPCustom/Volume/myRayMarching"
                 #endif
 
                 // 根据云属计算垂直密度, w通道为feather的比例
-                float heightFraction = Remap(currentPos.y, _CloudHeightRange.x, _CloudHeightRange.y, 0, 1);
+                float height =  Remap(saturate(weatherData.g+0.2) , 0, 1, _CloudHeightRange.x,_CloudHeightRange.y);
+                float heightFraction = Remap(currentPos.y, _CloudHeightRange.x, height, 0, 1);
 
 
                 // 可以通过手动调整cloud type: weatherData.b 以 debug不同云属的云
@@ -205,22 +209,27 @@ Shader "URPCustom/Volume/myRayMarching"
                     return horizontal_profile * _densityMultiplier * 0.05;
                 }
 
+                if (_debugShape == 1 && _debugShapeFlag == 1) //Perlin-Worly
+                {
+                    //WeatherMap
+                    return vertical_profile * _densityMultiplier * 0.05;
+                }
                 float dimensionalProfile = horizontal_profile * vertical_profile;
 
-                if (_debugShape == 1 && _debugShapeFlag == 1) //dimensionalProfile
+                if (_debugShape == 1 && _debugShapeFlag == 2) //dimensionalProfile
                 {
                     //WeatherMap
                     return dimensionalProfile * _densityMultiplier * 0.05;
                 }
-                if (_debugShape == 1 && _debugShapeFlag == 2) //Perlin-Worly
-                {
-                    //WeatherMap
-                    return shapeTexData.r * dimensionalProfile * _densityMultiplier * 0.05;
-                }
                 if (_debugShape == 1 && _debugShapeFlag == 3)
                 {
                     //WeatherMap
-                    return baseShape * dimensionalProfile * _densityMultiplier * 0.05;
+                    return baseShape * _densityMultiplier * 0.05;
+                }
+                if (_debugShape == 1 && _debugShapeFlag == 4)
+                {
+                    //WeatherMap
+                    return pow (baseShape * dimensionalProfile, 4) * _densityMultiplier ;
                 }
 
                 #if 1
