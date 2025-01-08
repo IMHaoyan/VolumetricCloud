@@ -229,7 +229,7 @@ Shader "URPCustom/Volume/myRayMarching"
                 if (_debugShape == 1 && _debugShapeFlag == 4)
                 {
                     //WeatherMap
-                    return pow (baseShape * dimensionalProfile, 4) * _densityMultiplier ;
+                    return baseShape * dimensionalProfile * _densityMultiplier ;
                 }
 
                 
@@ -247,7 +247,7 @@ Shader "URPCustom/Volume/myRayMarching"
                 return saturate(Remap(baseShape, 1 - dimensionalProfile, 1, 0, 1))
                     * _densityMultiplier * 0.05;
                 #else//Nubis Evolved?
-                return saturate(Remap(detailShape, 1 - dimensionalProfile, 1, 0, 1))
+                return saturate(Remap(detailShape, saturate(1 - dimensionalProfile), 1, 0, 1))
                     * _densityMultiplier * 0.05;
                 return saturate(baseShape - (1 - dimensionalProfile)) * _densityMultiplier * 0.05;
                 #endif
