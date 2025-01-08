@@ -232,10 +232,23 @@ Shader "URPCustom/Volume/myRayMarching"
                     return pow (baseShape * dimensionalProfile, 4) * _densityMultiplier ;
                 }
 
-                #if 1
+                
+                LFNoise = shapeTexData.r;
+                float3 detailTex = SAMPLE_TEXTURE3D_LOD(_DetailShapeTex, sampler_DetailShapeTex, currentPos * _DetailShapeTex_ST.x * 0.0001, 0).rgb;
+                float detailTexFBM = dot(detailTex, float3(0.625, 0.25, 0.125));
+                //根据高度从纤细到波纹的形状进行变化
+                HFNoise = detailTexFBM;//lerp(detailTexFBM, 1.0 - detailTexFBM,saturate(heightFraction * 1.0));
+                //通过使用remap映射细节噪声，可以保留基本形状，在边缘进行变化
+                float detailShape = Remap(baseShape, (-HFNoise) * _detailEffect, 1, 0, 1);
+                
+
+                
+                #if 0
                 return saturate(Remap(baseShape, 1 - dimensionalProfile, 1, 0, 1))
                     * _densityMultiplier * 0.05;
                 #else//Nubis Evolved?
+                return saturate(Remap(detailShape, 1 - dimensionalProfile, 1, 0, 1))
+                    * _densityMultiplier * 0.05;
                 return saturate(baseShape - (1 - dimensionalProfile)) * _densityMultiplier * 0.05;
                 #endif
 
