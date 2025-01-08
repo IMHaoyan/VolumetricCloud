@@ -198,7 +198,7 @@ Shader "URPCustom/Volume/myRayMarching"
                 float4 shapeTexData = SAMPLE_TEXTURE3D_LOD(_ShapeTex, sampler_ShapeTex, shapeTexUV, 0);
 
                 #if 1
-                float fbm = dot(shapeTexData.gba, float3(0.625, 0.25, 0.125)); //  (0.625, 0.25, 0.125)?
+                float fbm = dot(1 - shapeTexData.gba, float3(0.625, 0.25, 0.125)); //  (0.625, 0.25, 0.125)?
                 float HFNoise = fbm;
                 float LFNoise = shapeTexData.r;
                 //参考：https://zhuanlan.zhihu.com/p/6243450539
