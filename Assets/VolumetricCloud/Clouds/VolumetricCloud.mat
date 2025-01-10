@@ -40,7 +40,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _DetailShapeTex:
         m_Texture: {fileID: 11700000, guid: b1456c04da2cdcc46b7205e8bf512d84, type: 2}
-        m_Scale: {x: 12, y: 0}
+        m_Scale: {x: 10, y: 0}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
         m_Texture: {fileID: 0}
@@ -52,7 +52,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _ShapeTex:
         m_Texture: {fileID: 11700000, guid: 2b2f4d6a841119146b2afce2461632fe, type: 2}
-        m_Scale: {x: 3, y: 0}
+        m_Scale: {x: 2.6, y: 0}
         m_Offset: {x: 0, y: 0}
     - _WeatherTex:
         m_Texture: {fileID: 2800000, guid: d7ef8e30df95afa418ab1bdfab104416, type: 3}
@@ -93,7 +93,7 @@ Material:
     - _debugShapeFlag: 5
     - _densityMul: 1
     - _densityMultiplier: 0.25
-    - _detailEffect: 1
+    - _detailEffect: 0.8
     - _display0: 0
     - _display1: 0
     - _embientON: 2
