@@ -356,10 +356,10 @@ Shader "URPCustom/Volume/myRayMarching"
                         //_embientColor.rgb = SampleSH(GetMainLight().direction).rgb;
                         float3 luminance0 = _sigma_s * _embientColor * b * Beer(tau, a * _sigma_t) * pow(
                                 1 - density, 0.5) *
-                            density * _AmbinetScale0;
+                            density * _AmbinetScale0 * _DirectLightMultiplier;
                         float3 luminance1 = _sigma_s * _embientColor * b * Beer(tau, a * _sigma_t) * pow(
                                 1 - density, 0.5) *
-                            0.003 * _AmbinetScale1;
+                            0.003 * _AmbinetScale1 * _DirectLightMultiplier;
                         luminance += lerp(luminance0, luminance1, _ambientlerp);
                         if (_embientON == 1)
                         {

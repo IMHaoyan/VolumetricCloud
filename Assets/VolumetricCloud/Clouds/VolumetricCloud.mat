@@ -62,8 +62,8 @@ Material:
     m_Floats:
     - _AdaptiveMarch: 1
     - _AmbinetScale: 0.00517
-    - _AmbinetScale0: 0.637
-    - _AmbinetScale1: 0.776
+    - _AmbinetScale0: 0.18
+    - _AmbinetScale1: 0.22
     - _BlueNoiseStrength: 8
     - _CLOUDLUT: 0
     - _CloudLUT: 0
@@ -81,7 +81,7 @@ Material:
     - _WindSpeed: 1
     - _ZFar: 50000
     - _albedo: 0.9
-    - _ambientlerp: 0.031
+    - _ambientlerp: 0.15
     - _baseShapeDetailEffect: 0.1
     - _baseShapeHFNoiseStrength: 0.8
     - _beerMultiplier: 2
