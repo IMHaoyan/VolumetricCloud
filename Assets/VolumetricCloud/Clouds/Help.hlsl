@@ -35,6 +35,9 @@ CBUFFER_START(UnityPerMaterial)
 
     float _AdaptiveMarch;
     float4 _embientColor;
+
+
+    float _exp1;
 CBUFFER_END
 
 
@@ -172,10 +175,10 @@ float GetCloudTypeDensity(float heightFraction, float cloud_min, float cloud_max
 
 float Beer(float tau, float sigma_t)
 {
-    return exp(-tau * sigma_t);
+    //return exp(-tau * sigma_t);
     float lightDensity = tau * sigma_t;
     float beersLaw = exp(-lightDensity);
-    float beersModulated = max(beersLaw, 0.7 * exp(-0.25 * lightDensity));
+    float beersModulated = max(beersLaw, _exp1 * exp(-0.25 * lightDensity));
     return beersModulated;
 }
 

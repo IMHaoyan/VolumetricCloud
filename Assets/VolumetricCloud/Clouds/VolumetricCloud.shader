@@ -57,6 +57,8 @@ Shader "URPCustom/Volume/myRayMarching"
         _AmbinetScale0 ("_AmbinetScale0 ", Range(0.000001, 1)) = 0.35
         _AmbinetScale1 ("_AmbinetScale1 ", Range(0.000001, 2)) = 0.5
         _ambientlerp ("_ambientlerp", Range(0, 1)) = 0
+        
+        _exp1("_exp1", Range(0, 1)) = 0.7
     }
     SubShader
     {
