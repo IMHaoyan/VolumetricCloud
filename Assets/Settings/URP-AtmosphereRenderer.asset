@@ -83,11 +83,11 @@ MonoBehaviour:
       type: 3}
     hdrDebugViewPS: {fileID: 4800000, guid: 573620ae32aec764abd4d728906d2587, type: 3}
   m_RendererFeatures:
-  - {fileID: 2813986913913973015}
   - {fileID: -1878332245247344467}
-  - {fileID: 5969759460971407093}
+  - {fileID: 2813986913913973015}
   - {fileID: -1838842295810804373}
-  m_RendererFeatureMap: 17a97066304a0d27adc0de57c6d2eee5f566bac199d8d8526bb53bb0ac1e7be6
+  - {fileID: 5969759460971407093}
+  m_RendererFeatureMap: adc0de57c6d2eee517a97066304a0d276bb53bb0ac1e7be6f566bac199d8d852
   m_UseNativeRenderPass: 0
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
@@ -164,7 +164,7 @@ MonoBehaviour:
     PassEvent: 400
     BlueNoiseTex: {fileID: 2800000, guid: 4fbeaa71ff471a44da044fabe12fdbf8, type: 3}
     RTScale: 0.25
-    FrameBlocking: 4
+    FrameBlocking: 1
     ShieldWidth: 300
     IsFrameDebug: 0
     FrameDebug: 1
@@ -180,7 +180,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9ee34884cc6f0fb49ba03122f7c8a3cb, type: 3}
   m_Name: AerialPerspectiveRF
   m_EditorClassIdentifier: 
-  m_Active: 1
+  m_Active: 0
   mySetting:
     passEvent: 550
     AerialPerspecMat: {fileID: 2100000, guid: 0a307b5b87598324e95baf0e59a682f8, type: 2}

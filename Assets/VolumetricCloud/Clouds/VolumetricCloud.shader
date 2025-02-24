@@ -9,7 +9,7 @@ Shader "URPCustom/Volume/myRayMarching"
         [KeywordEnum(ON, OFF)] _VPLUT ("_VerticalLutON", Float) = 0
         _WeatherTex ("WeatherTex", 2D) = "white" { }
 
-        _cloudCoverage ("_cloudCoverage", Range(0, 20)) = 1
+        _cloudCoverage ("_cloudCoverage", Range(0, 1)) = 1
         _densityMultiplier ("densityMultiplier (x 0.1)", Range(0, 1)) = 0.25
 
         [Toggle]_debugShape ("debugShape ", Float) = 0
@@ -163,13 +163,14 @@ Shader "URPCustom/Volume/myRayMarching"
                 //采样天气纹理，默认1000km平铺， r 密度, g 吸收率, b 云类型(0~1 => 层云~积云)
                 float2 weatherTexUV = dsiPos.xz * _WeatherTex_ST.x; //* _weatherTexTiling;  10.8
                 float4 weatherData = SAMPLE_TEXTURE2D_LOD(_WeatherTex, sampler_WeatherTex,
-                                                          weatherTexUV * 0.000001 + _WeatherTex_ST.zw + wind.xz * 0.01,
+                                                          weatherTexUV * 0.000001 + _WeatherTex_ST.zw + wind.xz * 0.005,
                                                           0);
                 float horizontal_profile = 1;
                 #if 0 //旧的weatherMap覆盖率
                 horizontal_profile = weatherData.r * _cloudCoverage;
                 #else
                 horizontal_profile = Remap(weatherData.r, 1 - _cloudCoverage, 1, 0, 1);
+                //horizontal_profile = weatherData.r;
                 #endif
 
                 // 根据云属计算垂直密度, w通道为feather的比例
@@ -200,12 +201,13 @@ Shader "URPCustom/Volume/myRayMarching"
                 float4 shapeTexData = SAMPLE_TEXTURE3D_LOD(_ShapeTex, sampler_ShapeTex, shapeTexUV, 0);
 
                 #if 1
-                float fbm = dot(1 - shapeTexData.gba, float3(0.625, 0.25, 0.125)); //  (0.625, 0.25, 0.125)?
+                float fbm = dot(shapeTexData.gba, float3(0.625, 0.25, 0.125)); //  (0.625, 0.25, 0.125)?
                 float HFNoise = fbm;
                 float LFNoise = shapeTexData.r;
                 //参考：https://zhuanlan.zhihu.com/p/6243450539
-                float baseShape = Remap(LFNoise, (-HFNoise) * _baseShapeHFNoiseStrength, 1.0, 0, 1.0);
-
+                float baseShape = Remap(LFNoise, -(1-HFNoise) * _baseShapeHFNoiseStrength, 1.0, 0, 1.0);
+                //baseShape = Remap(baseShape, 1 - _cloudCoverage, 1, 0, 1);
+                
                 if (_debugShape == 1 && _debugShapeFlag == 0) //仅WeatherMap
                 {
                     return horizontal_profile * _densityMultiplier * 0.05;
@@ -236,12 +238,14 @@ Shader "URPCustom/Volume/myRayMarching"
 
                 
                 LFNoise = shapeTexData.r;
+                
+                currentPos += (_windDirection + float3(0, 1, 0)) * _windSpeed * _Time.y * 100;
                 float3 detailTex = SAMPLE_TEXTURE3D_LOD(_DetailShapeTex, sampler_DetailShapeTex, currentPos * _DetailShapeTex_ST.x * 0.0001, 0).rgb;
                 float detailTexFBM = dot(detailTex, float3(0.625, 0.25, 0.125));
                 //根据高度从纤细到波纹的形状进行变化
                 HFNoise = detailTexFBM;//lerp(detailTexFBM, 1.0 - detailTexFBM,saturate(heightFraction * 1.0));
                 //通过使用remap映射细节噪声，可以保留基本形状，在边缘进行变化
-                float detailShape = Remap(baseShape, (-HFNoise) * _detailEffect, 1, 0, 1);
+                float detailShape = Remap(baseShape, -(-HFNoise) * _detailEffect, 1, 0, 1);
                 
 
                 
@@ -394,7 +398,7 @@ Shader "URPCustom/Volume/myRayMarching"
                 float transmittance = 1.0;
 
                 float stepResolution = _stepResolution;
-                stepResolution = lerp(_stepResolution, _stepResolution / 4, abs(dot(direction, half3(0, 1, 0))));
+                stepResolution = lerp(_stepResolution, _stepResolution / 4, abs(dot(direction, half3(0, 1, 0))));//50ms->41ms
                 float stepsize = min(inCloudMarchLimit / stepResolution, _MaxStepSize);
                 if (stepsize == _MaxStepSize)
                 {
@@ -457,13 +461,15 @@ Shader "URPCustom/Volume/myRayMarching"
 
                         inCloudMarchedLength += stepsize;
                         currentPos += direction * stepsize;
+                        if (_AdaptiveMarch)
+                        stepsize *= 1.005;
 
                         float currentDensity = SampleCloudDensity(currentPos);
 
                         if (_AdaptiveMarch && currentDensity < DensityEPS && densityPrevious < DensityEPS)
                         {
                             densitySampleCount_zero++;
-                            if (densitySampleCount_zero >= 8)
+                            if (densitySampleCount_zero >= 4)
                             {
                                 //切换到大步进
                                 densityTest = 0;

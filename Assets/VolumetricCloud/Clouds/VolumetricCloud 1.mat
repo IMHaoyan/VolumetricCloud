@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: VolumetricCloud
+  m_Name: VolumetricCloud 1
   m_Shader: {fileID: 4800000, guid: efbf066279dba484abe6f4c1f954fde6, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -62,7 +62,7 @@ Material:
     m_Floats:
     - _AdaptiveMarch: 1
     - _AmbinetScale: 0.00517
-    - _AmbinetScale0: 0.15
+    - _AmbinetScale0: 0.18
     - _AmbinetScale1: 0.22
     - _BlueNoiseStrength: 8
     - _CLOUDLUT: 0
@@ -93,7 +93,7 @@ Material:
     - _debugShapeFlag: 5
     - _densityMul: 1
     - _densityMultiplier: 0.25
-    - _detailEffect: 0.6
+    - _detailEffect: 0.8
     - _display0: 0
     - _display1: 0
     - _embientON: 2
@@ -118,7 +118,7 @@ Material:
     - _CloudHeightRange: {r: 1500, g: 4000, b: 0, a: 0}
     - _WindDirection: {r: 0, g: 0, b: 0, a: 0}
     - _cumulusInfo: {r: 0, g: 0, b: 0, a: 0}
-    - _embientColor: {r: 0.8, g: 0.904, b: 1, a: 1}
+    - _embientColor: {r: 0.759, g: 0.8890635, b: 1, a: 1}
     - _stratusInfo: {r: 0, g: 0, b: 0, a: 0}
     - _windDirection: {r: 0.1376577, g: -0.1567618, b: 0.977996, a: 0}
   m_BuildTextureStacks: []
