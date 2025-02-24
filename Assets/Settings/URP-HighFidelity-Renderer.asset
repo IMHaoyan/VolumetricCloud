@@ -52,7 +52,7 @@ MonoBehaviour:
     CS: {fileID: 7200000, guid: fe0f8a511266cb74e85fde2d0dfbbdd4, type: 3}
     GroundRadius: 6360000
     SeaLevel: -1
-    MultiScatteringScale: -10
+    MultiScatteringScale: 1
     AtmosphereHeight: 60000
     RayleighScatteringScale: 1
     RayleighExponentialDistribution: 8000
